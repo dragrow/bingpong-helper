@@ -1,0 +1,36 @@
+{
+	"key": <KEY>,
+	"name": "Bing Pong Helper",
+	"version": "1.3.10.0",
+	"description": "Extends the abilities of Bing Pong",
+	"manifest_version": 2,
+	"page_action": {
+		"default_icon": "bp128.png",
+		"default_popup": "popup.html"
+	},
+	"icons": { 
+		"16": "bp16.png",
+		"48": "bp48.png",
+		"128": "bp128.png" 
+	},
+	"options_page": "options.html",
+	"permissions": [
+		"*://*/*", "webRequest", "webRequestBlocking", "tabs", "cookies", "contentSettings"
+	],
+	"background": {
+		"page": "background.html"
+	},
+	"content_scripts": [
+		{
+			"matches": ["*://*.bing.com/*", "*://*.bing-pong.com/*", "*://*.bingpong.net/*"],
+			"js": ["scripts/script.js"],
+			"run_at": "document_start",
+			"all_frames": true
+		}
+	],
+	"externally_connectable": {
+		"matches": ["*://*.bing-pong.com/*", "*://*.bingpong.net/*"]
+	},
+	"web_accessible_resources": ["scripts/blockalerts.js", "scripts/click-on-search-result.js", "scripts/click-on-second-page.js", "scripts/jquery.js", "search_result_blocked.html"],
+	"homepage_url": "http://bing-pong.com"
+}
