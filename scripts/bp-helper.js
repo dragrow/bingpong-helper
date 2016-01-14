@@ -609,8 +609,14 @@ function executeSearchCaptchaScript() {
 }
 
 function checkForSearchCaptcha(callback) {
+	// checks for tab crash. if a crash has occurred, just return to caller
+	tabCrashTimeout = setTimeout(function () {
+		callback("TAB_CRASHED");
+	}, 500);
+	
 	chrome.tabs.executeScript(searchTab.id, {code: "document.getElementsByTagName('html')[0].innerHTML;", runAt: "document_start"}, function (source) {	
 		callback((!chrome.runtime.lastError && source && JSON.stringify(source).indexOf("Pardon the interruption") != -1));
+		clearTimeout(tabCrashTimeout);
 	});
 }
 
