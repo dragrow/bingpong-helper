@@ -581,28 +581,27 @@ function executeSearchCaptchaScript() {
 	clearTimeout(searchTimeout);
 	searchTimeout = null;
 	
-	checkForSearchCaptcha(function (tabIsDead, captchaDetected) {
-		setTimeout(function () {
+	setTimeout(function () {
+		checkForSearchCaptcha(function (tabIsDead, captchaDetected) {
 			if (captchaDetected || tabIsDead || getCookie("emulateHumanSearchingBehavior") == "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") {
-				// we are done with the search, so return control to Bing Pong
+				// prevent some searches from "loading" twice
 				if (globalResponse) { 
 					globalResponse({tabIsDead: tabIsDead, captchaDetected: captchaDetected});
 					globalResponse = null;
 				}
 			} else {
-				// search is not complete yet. emulate human searching behavior before returning control to Bing Pong
 				chrome.tabs.executeScript(searchTab.id, {code: "document.getElementsByTagName('html')[0].innerHTML;", runAt: "document_start"}, function (source) {
 					searchWindowContents = source;
 					emulateHumanSearchingBehavior();
 				});
 			}
-		}, 200 + minDelay + (maxDelay - minDelay - 200)*Math.random());
-	});
+		});
+	}, 200 + minDelay + (maxDelay - minDelay - 200)*Math.random());
 }
 
 function checkForSearchCaptcha(callback) {
-	// checks for tab crash. if a crash has occurred, just return to caller
-	tabCrashTimeout = setTimeout(function () {
+	// checks for tab crash. if a crash has occurred, return to caller
+	var tabCrashTimeout = setTimeout(function () {
 		callback(true, false);
 	}, 500);
 	
