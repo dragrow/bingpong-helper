@@ -7,12 +7,6 @@ var searchTerm = document.getElementById('sb_form_q').value;
 var searchResultElements = new Array();
 var element;
 
-var html = document.getElementsByTagName('html')[0].innerHTML;
-var links = document.getElementsByTagName('a');
-var searchTerm = document.getElementById('sb_form_q').value;
-var searchResultElements = new Array();
-var element;
-
 function clickOnElement(el) { 
 	var r = el.getBoundingClientRect();
 	var evt = document.createEvent("MouseEvents");

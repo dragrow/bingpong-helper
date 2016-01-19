@@ -1,7 +1,7 @@
 {
 	"key": <KEY>,
 	"name": "Bing Pong Helper",
-	"version": "1.4.0.4",
+	"version": "1.4.0.5",
 	"description": "Extends the abilities of Bing Pong",
 	"manifest_version": 2,
 	"page_action": {
