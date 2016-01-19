@@ -13,6 +13,8 @@ var MAXIMUM_DELAY_BEFORE_SCROLLING_DOWN = 7000;
 var MINIMUM_DELAY_BEFORE_SCROLLING_UP = 500;
 var MAXIMUM_DELAY_BEFORE_SCROLLING_UP = 7000;
 var DELAY_BEFORE_RETURNING_AFTER_SEARCHING = 8000;
+var DASHBOARD_TASK_CLICK_DELAY = 2000;
+var TASK_TO_DASHBOARD_DELAY = 6000;
 
 var globalResponse, dashboardLoads, logoutLoads, dashboardWindow, dashboardTab, searchWindow, searchTab, loginWindow, loginTab, loginTimeout, dashboardFunctionLoads, bpWindow, captchaTab, minDelay, maxDelay, dashboardTimeout, searchTimeout;
 var username, password;
@@ -446,23 +448,40 @@ function openOutlook() {
 }
 
 function performTasks(taskList) { 
-	taskTabs = new Array();
-	
-	// open all the dashboard tasks in a tab
-	for (var i = 0; i < taskList.length; i++) { 
-		chrome.tabs.create({url: taskList[i], active: false}, function (tab) { 
-			taskTabs.push(tab);
-		});
-	}
-	
-	// after a certain amount of time, close the dashboard tasks and return to caller
-	setTimeout(function () {
-		for (var i = 0; i < taskTabs.length; i++) { 
-			chrome.tabs.remove(taskTabs[i].id);
+	// open the Bing Rewards dashboard in a new window
+	openBrowserWindow("https://bing.com/rewards/dashboard", function (window, tab) { 
+		var processNextTask = function () {
+			var taskURL = taskList.pop();
+			
+			// inject our emulation script into the tab
+			chrome.tabs.executeScript(tab.id, {file: "scripts/emulation.js", runAt: "document_start"}, function (result) {
+				// click on the the task on the dashboard that corresponds to this task's URL
+				chrome.tabs.executeScript(tab.id, {
+					code: 
+						"var links = document.getElementsByTagName('a'); " +
+						"for (var i = 0; i < links.length; i++) {" +
+							"if (links[i].href == \"" + taskURL + "\") {" +
+								"setTimeout(function () {" +
+									"mouseOverElement(links[i], function () {" +
+										"mouseDownOnElement(links[i], function () {" +
+											"clickOnElement(links[i]);" +
+										"});" + 
+									"});" + 
+								"}, " + DASHBOARD_TASK_CLICK_DELAY + ");" + 
+							"}" + 
+						"}" + 
+					"", runAt: "document_start"}, function (result) { 
+						if (taskURL.length > 0) { 
+							setTimeout(processNextTask, TASK_TO_DASHBOARD_DELAY);
+						} else {
+							chrome.windows.remove(window.id, globalResponse);
+						}
+					});
+			});
 		}
 		
-		globalResponse();
-	}, 10000);	
+		processNextTask();
+	});
 }
 		
 function openDashboardForVerifying() {
