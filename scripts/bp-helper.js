@@ -546,7 +546,7 @@ function emulateHumanSearchingBehavior() {
 			if (randomNumber < 0.15) { 
 				// scroll to the bottom
 				chrome.tabs.executeScript(searchTab.id, {code: "window.scroll(0, 9999);", runAt: "document_start"}, function (result) {
-					chrome.tabs.executeScript(searchTab.id, {file: "scripts/click-on-second-page.js", runAt: "document_start"}, function (result) {
+					chrome.tabs.executeScript(searchTab.id, {file: "scripts/click-on-next-page-arrow.js", runAt: "document_start"}, function (result) {
 						// prevent some searches from "loading" twice
 						if (globalResponse) { 
 							setTimeout(globalResponse, DELAY_BEFORE_RETURNING_AFTER_SEARCHING);
