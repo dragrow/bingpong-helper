@@ -4,7 +4,7 @@ function clickOnElement(el) {
 
 	evt.initMouseEvent('click', true, true, window, null, r.right, r.top, 0, 0, false, false, false, false, 0, null);
 
-	$(el)[0].dispatchEvent(evt);
+	el.dispatchEvent(evt);
 }
 
 function mouseOverElement(el, callback) { 
@@ -13,7 +13,7 @@ function mouseOverElement(el, callback) {
 
 	evt.initMouseEvent('mouseover', true, true, window, null, r.right, r.top, 0, 0, false, false, false, false, 0, null);
 
-	$(el)[0].dispatchEvent(evt);
+	el.dispatchEvent(evt);
 	callback();
 }
 
@@ -23,12 +23,27 @@ function mouseDownOnElement(el, callback) {
 
 	evt.initMouseEvent('mousedown', true, true, window, null, r.right, r.top, 0, 0, false, false, false, false, 0, null);
 
-	$(el)[0].dispatchEvent(evt);
+	el.dispatchEvent(evt);
 	callback();
 }
 
+function clickOnLinkWithUrl(url, delay) { 
+	var links = document.getElementsByTagName('a');
+	for (var i = 0; i < links.length; i++) { 
+		if (links[i].href == url) { 
+			mouseOverElement(links[i], function () { 
+				mouseDownOnElement(links[i], function () { 
+					setTimeout(function () { 
+						clickOnElement(links[i]);
+					}, delay);
+				});
+			});
+			break;
+		}
+	}
+}
+
 function emulateMouseMovement(xFrom, yFrom, xTo, yTo, movementLength, movementDelay, callback) {
-	 
 	if ((xFrom == xTo && yFrom == yTo) || movementLength < movementDelay) { 
 		callback();
 	} else {
@@ -53,7 +68,7 @@ function emulateMouseMovement(xFrom, yFrom, xTo, yTo, movementLength, movementDe
 			
 			console.log('moved to (' + newX + ', ' + newY + ').');
 			evt.initMouseEvent('mousemove', true, true, window, null, newX, newY, 0, 0, false, false, false, false, 0, null);
-			$('body')[0].dispatchEvent(evt);
+			document.body.dispatchEvent(evt);
 		};
 		
 		movePointer();

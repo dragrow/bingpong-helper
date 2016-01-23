@@ -453,30 +453,23 @@ function performTasks(taskList) {
 		var processNextTask = function () {
 			var taskURL = taskList.pop();
 			
-			// inject our emulation script into the tab
-			chrome.tabs.executeScript(tab.id, {file: "scripts/emulation.js", runAt: "document_start"}, function (result) {
-				// click on the the task on the dashboard that corresponds to this task's URL
-				chrome.tabs.executeScript(tab.id, {
-					code: 
-						"var links = document.getElementsByTagName('a'); " +
-						"for (var i = 0; i < links.length; i++) {" +
-							"if (links[i].href == \"" + taskURL + "\") {" +
-								"setTimeout(function () {" +
-									"mouseOverElement(links[i], function () {" +
-										"mouseDownOnElement(links[i], function () {" +
-											"clickOnElement(links[i]);" +
-										"});" + 
-									"});" + 
-								"}, " + DASHBOARD_TASK_CLICK_DELAY + ");" + 
-							"}" + 
-						"}" + 
-					"", runAt: "document_start"}, function (result) { 
-						if (taskURL.length > 0) { 
-							setTimeout(processNextTask, TASK_TO_DASHBOARD_DELAY);
-						} else {
-							chrome.windows.remove(window.id, globalResponse);
-						}
+			// get the contents of emulation.js
+			$.ajax({
+				url: chrome.extension.getURL("scripts/emulation.js"),
+				type: 'GET',
+				dataType: 'text',
+				success: function (emulationCode) { 
+					// click on the the task on the dashboard that corresponds to this task's URL
+					chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + taskURL + "\", " + DASHBOARD_TASK_CLICK_DELAY + ");", runAt: "document_start"}, function (result) { 
+						setTimeout(function () { 
+							if (taskList.length > 0) {
+								processNextTask();
+							} else {
+								chrome.windows.remove(window.id, globalResponse);
+							}
+						}, TASK_TO_DASHBOARD_DELAY + DASHBOARD_TASK_CLICK_DELAY);
 					});
+				}
 			});
 		}
 		
@@ -748,8 +741,12 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 			bpWindow = window;
 			
 			chrome.contentSettings.location.clear({scope: "regular"}, function () { // workaround for Chrome bug
-				chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
-					globalResponse({bphVersion: chrome.app.getDetails().version});
+				chrome.contentSettings.popups.clear({scope: "regular"}, function () {
+					chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
+						chrome.contentSettings.popups.set({primaryPattern: "*://*.bing.com/*", setting: "allow"}, function () {
+							globalResponse({bphVersion: chrome.app.getDetails().version});
+						});
+					});
 				});
 			});
 		});
