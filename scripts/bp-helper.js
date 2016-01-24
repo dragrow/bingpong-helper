@@ -666,7 +666,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
 		// modify the user-agent string to emulate a mobile browser
 		for (var i = 0; i < headers.length; i++) {
 			if (headers[i].name == 'User-Agent') {
-				headers[i].value = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1';
+				headers[i].value = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_2_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13D15 Safari/601.1';
 				break;
 			}
 		}
