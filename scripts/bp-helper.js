@@ -319,40 +319,32 @@ function inputLoginDetails() {
 				return;
 			}
 			
-			if (input == username) { // the username has been successfully inputed in the textbox
-				clearTimeout(usernameTimeout);
+			clearTimeout(usernameTimeout);
 				
-				var inputPassword = function () {
-					chrome.tabs.executeScript(loginTab.id, {code: getPasswordCode(), runAt: "document_idle"}, function (input) { 
-						if (input == password) { // the password has been successfully inputed in the textbox
-							clearTimeout(passwordTimeout);
-							
-							var pressLoginButton = function () {
-								chrome.tabs.executeScript(loginTab.id, {code: getPressLoginButtonCode(), runAt: "document_idle"}, function (input) {
-									setTimeout(function () {
-										// close the log-in window and return to caller
-										chrome.windows.remove(loginWindow.id, function () {
-											// temp band-aid
-											if (globalResponse) { 
-												globalResponse();
-												globalResponse = null;
-											}
-										});
-									}, DELAY_AFTER_HITTING_LOGIN_BUTTON);
+			var inputPassword = function () {
+				chrome.tabs.executeScript(loginTab.id, {code: getPasswordCode(), runAt: "document_idle"}, function (input) { 
+					clearTimeout(passwordTimeout);
+						
+					var pressLoginButton = function () {
+						chrome.tabs.executeScript(loginTab.id, {code: getPressLoginButtonCode(), runAt: "document_idle"}, function (input) {
+							setTimeout(function () {
+								// close the log-in window and return to caller
+								chrome.windows.remove(loginWindow.id, function () {
+									// temp band-aid
+									if (globalResponse) { 
+										globalResponse();
+										globalResponse = null;
+									}
 								});
-							};
+							}, DELAY_AFTER_HITTING_LOGIN_BUTTON);
+						});
+					};
 							
-							setTimeout(pressLoginButton, DELAY_AFTER_ENTERING_PASSWORD);
-						} else { // password input failed
-							// passwordTimeout = setTimeout(inputUsernamw, 1000); // try again in one second
-						}
-					});
-				};
+					setTimeout(pressLoginButton, DELAY_AFTER_ENTERING_PASSWORD);
+				});
+			};
 				
-				setTimeout(inputPassword, DELAY_AFTER_ENTERING_USERNAME);
-			} else { // username input failed
-				// usernameTimeout = setTimeout(inputUsername, 1000); // try again in one second
-			}
+			setTimeout(inputPassword, DELAY_AFTER_ENTERING_USERNAME);
 		});
 	}
 	
