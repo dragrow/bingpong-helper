@@ -672,16 +672,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
 		}
 	}
 	
-	// remove the X-Requested-With header that comes with the emulated GLinkPing
-	if (searchTab && details.tabId == searchTab.id) { 
-		for (var i = 0; i < headers.length; i++) { 
-			if (headers[i].name == "X-Requested-With" && details.url.indexOf("GLinkPing.aspx") != -1) { 
-				headers.splice(i, 1);
-				break;
-			}
-		}
-	}
-	
 	return {requestHeaders: headers};
 }, {urls: ["<all_urls>"]}, ['requestHeaders', 'blocking']);
 
