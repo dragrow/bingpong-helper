@@ -319,40 +319,32 @@ function inputLoginDetails() {
 				return;
 			}
 			
-			if (input == username) { // the username has been successfully inputed in the textbox
-				clearTimeout(usernameTimeout);
+			clearTimeout(usernameTimeout);
 				
-				var inputPassword = function () {
-					chrome.tabs.executeScript(loginTab.id, {code: getPasswordCode(), runAt: "document_idle"}, function (input) { 
-						if (input == password) { // the password has been successfully inputed in the textbox
-							clearTimeout(passwordTimeout);
-							
-							var pressLoginButton = function () {
-								chrome.tabs.executeScript(loginTab.id, {code: getPressLoginButtonCode(), runAt: "document_idle"}, function (input) {
-									setTimeout(function () {
-										// close the log-in window and return to caller
-										chrome.windows.remove(loginWindow.id, function () {
-											// temp band-aid
-											if (globalResponse) { 
-												globalResponse();
-												globalResponse = null;
-											}
-										});
-									}, DELAY_AFTER_HITTING_LOGIN_BUTTON);
+			var inputPassword = function () {
+				chrome.tabs.executeScript(loginTab.id, {code: getPasswordCode(), runAt: "document_idle"}, function (input) { 
+					clearTimeout(passwordTimeout);
+						
+					var pressLoginButton = function () {
+						chrome.tabs.executeScript(loginTab.id, {code: getPressLoginButtonCode(), runAt: "document_idle"}, function (input) {
+							setTimeout(function () {
+								// close the log-in window and return to caller
+								chrome.windows.remove(loginWindow.id, function () {
+									// temp band-aid
+									if (globalResponse) { 
+										globalResponse();
+										globalResponse = null;
+									}
 								});
-							};
+							}, DELAY_AFTER_HITTING_LOGIN_BUTTON);
+						});
+					};
 							
-							setTimeout(pressLoginButton, DELAY_AFTER_ENTERING_PASSWORD);
-						} else { // password input failed
-							// passwordTimeout = setTimeout(inputUsernamw, 1000); // try again in one second
-						}
-					});
-				};
+					setTimeout(pressLoginButton, DELAY_AFTER_ENTERING_PASSWORD);
+				});
+			};
 				
-				setTimeout(inputPassword, DELAY_AFTER_ENTERING_USERNAME);
-			} else { // username input failed
-				// usernameTimeout = setTimeout(inputUsername, 1000); // try again in one second
-			}
+			setTimeout(inputPassword, DELAY_AFTER_ENTERING_USERNAME);
 		});
 	}
 	
@@ -666,17 +658,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
 		// modify the user-agent string to emulate a mobile browser
 		for (var i = 0; i < headers.length; i++) {
 			if (headers[i].name == 'User-Agent') {
-				headers[i].value = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13B143 Safari/601.1';
-				break;
-			}
-		}
-	}
-	
-	// remove the X-Requested-With header that comes with the emulated GLinkPing
-	if (searchTab && details.tabId == searchTab.id) { 
-		for (var i = 0; i < headers.length; i++) { 
-			if (headers[i].name == "X-Requested-With" && details.url.indexOf("GLinkPing.aspx") != -1) { 
-				headers.splice(i, 1);
+				headers[i].value = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_2_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13D15 Safari/601.1';
 				break;
 			}
 		}
