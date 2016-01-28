@@ -15,6 +15,7 @@ var MAXIMUM_DELAY_BEFORE_SCROLLING_UP = 7000;
 var DELAY_BEFORE_RETURNING_AFTER_SEARCHING = 8000;
 var DASHBOARD_TASK_CLICK_DELAY = 2000;
 var TASK_TO_DASHBOARD_DELAY = 6000;
+var FIRST_TASK_ATTEMPT_DELAY = 10000;
 
 var globalResponse, dashboardLoads, logoutLoads, dashboardWindow, dashboardTab, searchWindow, searchTab, loginWindow, loginTab, loginTimeout, dashboardFunctionLoads, bpWindow, captchaTab, minDelay, maxDelay, dashboardTimeout, searchTimeout;
 var username, password;
@@ -465,7 +466,7 @@ function performTasks(taskList) {
 			});
 		}
 		
-		processNextTask();
+		setTimeout(processNextTask, FIRST_TASK_ATTEMPT_DELAY);
 	});
 }
 		
