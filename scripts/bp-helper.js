@@ -30,6 +30,7 @@ var alreadyOpened;
 var dictionary = new Array();
 var dictionaryIndex = 1;
 var isCanary = true;
+var processNextTask;
 
 /*
 chrome.management.onInstalled.addListener(function (installedExtensionInfo) { 
@@ -443,7 +444,10 @@ function openOutlook() {
 function performTasks(taskList) { 
 	// open the Bing Rewards dashboard in a new window
 	openBrowserWindow("https://bing.com/rewards/dashboard", function (window, tab) { 
-		var processNextTask = function () {
+		dashboardWindow = window;
+		dashboardTab = tab;
+		
+		processNextTask = function () {
 			var taskURL = taskList.pop();
 			
 			// get the contents of emulation.js
@@ -458,6 +462,7 @@ function performTasks(taskList) {
 							if (taskList.length > 0) {
 								processNextTask();
 							} else {
+								processNextTask = null;
 								chrome.windows.remove(window.id, globalResponse);
 							}
 						}, TASK_TO_DASHBOARD_DELAY + DASHBOARD_TASK_CLICK_DELAY);
@@ -465,8 +470,6 @@ function performTasks(taskList) {
 				}
 			});
 		}
-		
-		setTimeout(processNextTask, FIRST_TASK_ATTEMPT_DELAY);
 	});
 }
 		
@@ -700,7 +703,9 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
 	}
 	
 	if (dashboardTab && tabId == dashboardTab.id && changeInfo.status == "complete") {
-		// stub?
+		if (processNextTask) { 
+			setTimeout(processNextTask, FIRST_TASK_ATTEMPT_DELAY);
+		}
 	}
 	
 	if (searchTab && tabId == searchTab.id && changeInfo.status == "complete") { 
