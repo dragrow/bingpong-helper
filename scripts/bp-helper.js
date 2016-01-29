@@ -30,6 +30,8 @@ var alreadyOpened;
 var dictionary = new Array();
 var dictionaryIndex = 1;
 var isCanary = true;
+var processNextTask;
+var processNextTaskFlag = true;
 
 /*
 chrome.management.onInstalled.addListener(function (installedExtensionInfo) { 
@@ -443,7 +445,10 @@ function openOutlook() {
 function performTasks(taskList) { 
 	// open the Bing Rewards dashboard in a new window
 	openBrowserWindow("https://bing.com/rewards/dashboard", function (window, tab) { 
-		var processNextTask = function () {
+		dashboardWindow = window;
+		dashboardTab = tab;
+		
+		processNextTask = function () {
 			var taskURL = taskList.pop();
 			
 			// get the contents of emulation.js
@@ -453,11 +458,15 @@ function performTasks(taskList) {
 				dataType: 'text',
 				success: function (emulationCode) { 
 					// click on the the task on the dashboard that corresponds to this task's URL
-					chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + taskURL + "\", " + DASHBOARD_TASK_CLICK_DELAY + ");", runAt: "document_start"}, function (result) { 
+					chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + taskURL + "\", " + DASHBOARD_TASK_CLICK_DELAY + ", true);", runAt: "document_start"}, function (result) { 
 						setTimeout(function () { 
 							if (taskList.length > 0) {
-								processNextTask();
+								chrome.tabs.update(tab.id, {url: "https://bing.com/rewards/dashboard"});
+								processNextTaskFlag = true;
 							} else {
+								processNextTask = null;
+								dashboardWindow = null;
+								processNextTaskFlag = true;
 								chrome.windows.remove(window.id, globalResponse);
 							}
 						}, TASK_TO_DASHBOARD_DELAY + DASHBOARD_TASK_CLICK_DELAY);
@@ -465,8 +474,6 @@ function performTasks(taskList) {
 				}
 			});
 		}
-		
-		setTimeout(processNextTask, FIRST_TASK_ATTEMPT_DELAY);
 	});
 }
 		
@@ -699,10 +706,20 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
 		chrome.pageAction.show(tabId);
 	}
 	
-	if (dashboardTab && tabId == dashboardTab.id && changeInfo.status == "complete") {
-		// stub?
+	if (dashboardTab && tabId == dashboardTab.id && dashboardTab.url.indexOf("/dashboard") != -1 && changeInfo.status == "complete") {
+		if (processNextTask && processNextTaskFlag) { 
+			setTimeout(processNextTask, DASHBOARD_TASK_CLICK_DELAY);
+			processNextTaskFlag = false;
+		}
 	}
 	
+	// if processNextTask is not null, mute the dashboard window tab
+	if (processNextTask && dashboardWindow) { 
+		chrome.tabs.query({windowId: dashboardWindow.id}, function (dashboardTabsList) { 
+			chrome.tabs.update(dashboardTabsList[0].id, {muted: true});
+		});
+	}
+			
 	if (searchTab && tabId == searchTab.id && changeInfo.status == "complete") { 
 		if (searchTimeout) { 
 			executeSearchCaptchaScript();

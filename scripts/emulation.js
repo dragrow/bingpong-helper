@@ -27,13 +27,17 @@ function mouseDownOnElement(el, callback) {
 	callback();
 }
 
-function clickOnLinkWithUrl(url, delay) { 
+function clickOnLinkWithUrl(url, delay, resetTarget) { 
 	var links = document.getElementsByTagName('a');
 	for (var i = 0; i < links.length; i++) { 
 		if (links[i].href == url) { 
 			mouseOverElement(links[i], function () { 
 				mouseDownOnElement(links[i], function () { 
 					setTimeout(function () { 
+						if (resetTarget) { 
+							links[i].target = "_self";
+						}
+						
 						clickOnElement(links[i]);
 					}, delay);
 				});
