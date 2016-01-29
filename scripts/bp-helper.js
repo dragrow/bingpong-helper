@@ -708,6 +708,19 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
 		}
 	}
 	
+	// if processNextTask is not null and the dashboard window has multiple tabs, mute all the tabs
+	if (processNextTask && dashboardWindow) { 
+		chrome.tabs.query({windowId: dashboardWindow.id}, function (dashboardTabsList) { 
+			if (dashboardTabsList.length > 1) { 
+				for (var i = 0; i < dashboardTabsList.length; i++) {
+					chrome.tabs.update(dashboardTabsList[i].id, {muted: true}, function () { 
+						chrome.windows.update(dashboardWindow.id, {state: "minimized"});
+					});
+				}
+			}
+		});
+	}
+			
 	if (searchTab && tabId == searchTab.id && changeInfo.status == "complete") { 
 		if (searchTimeout) { 
 			executeSearchCaptchaScript();
