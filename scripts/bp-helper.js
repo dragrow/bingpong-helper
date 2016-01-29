@@ -31,6 +31,7 @@ var dictionary = new Array();
 var dictionaryIndex = 1;
 var isCanary = true;
 var processNextTask;
+var processNextTaskFlag = true;
 
 /*
 chrome.management.onInstalled.addListener(function (installedExtensionInfo) { 
@@ -457,12 +458,15 @@ function performTasks(taskList) {
 				dataType: 'text',
 				success: function (emulationCode) { 
 					// click on the the task on the dashboard that corresponds to this task's URL
-					chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + taskURL + "\", " + DASHBOARD_TASK_CLICK_DELAY + ");", runAt: "document_start"}, function (result) { 
+					chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + taskURL + "\", " + DASHBOARD_TASK_CLICK_DELAY + ", true);", runAt: "document_start"}, function (result) { 
 						setTimeout(function () { 
 							if (taskList.length > 0) {
-								processNextTask();
+								chrome.tabs.update(tab.id, {url: "https://bing.com/rewards/dashboard"});
+								processNextTaskFlag = true;
 							} else {
 								processNextTask = null;
+								dashboardWindow = null;
+								processNextTaskFlag = true;
 								chrome.windows.remove(window.id, globalResponse);
 							}
 						}, TASK_TO_DASHBOARD_DELAY + DASHBOARD_TASK_CLICK_DELAY);
@@ -702,22 +706,17 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
 		chrome.pageAction.show(tabId);
 	}
 	
-	if (dashboardTab && tabId == dashboardTab.id && changeInfo.status == "complete") {
-		if (processNextTask) { 
-			setTimeout(processNextTask, FIRST_TASK_ATTEMPT_DELAY);
+	if (dashboardTab && tabId == dashboardTab.id && dashboardTab.url.indexOf("/dashboard") != -1 && changeInfo.status == "complete") {
+		if (processNextTask && processNextTaskFlag) { 
+			setTimeout(processNextTask, DASHBOARD_TASK_CLICK_DELAY);
+			processNextTaskFlag = false;
 		}
 	}
 	
-	// if processNextTask is not null and the dashboard window has multiple tabs, mute all the tabs
+	// if processNextTask is not null, mute the dashboard window tab
 	if (processNextTask && dashboardWindow) { 
 		chrome.tabs.query({windowId: dashboardWindow.id}, function (dashboardTabsList) { 
-			if (dashboardTabsList.length > 1) { 
-				for (var i = 0; i < dashboardTabsList.length; i++) {
-					chrome.tabs.update(dashboardTabsList[i].id, {muted: true}, function () { 
-						chrome.windows.update(dashboardWindow.id, {state: "minimized"});
-					});
-				}
-			}
+			chrome.tabs.update(dashboardTabsList[0].id, {muted: true});
 		});
 	}
 			
