@@ -397,8 +397,22 @@ function deleteMicrosoftCookies() {
 				chrome.cookies.remove({url: "http" + (cookies[i].secure ? "s" : "") + "://" + tempDomain + cookies[i].path, name: cookies[i].name});
 			}
 			
-			// return to caller
-			globalResponse();
+			// delete all *.microsoft.com cookies
+			chrome.cookies.getAll({domain: "microsoft.com"}, function (cookies) { 
+				for (var i = 0; i < cookies.length; i++) { 
+					var tempDomain = cookies[i].domain;
+				
+					// sometimes tempDomain doesn't start with a period. if it does, strip the period
+					if (tempDomain.charAt(0) === ".") { 
+						tempDomain = tempDomain.substring(1, tempDomain.length);
+					}
+				
+					chrome.cookies.remove({url: "http" + (cookies[i].secure ? "s" : "") + "://" + tempDomain + cookies[i].path, name: cookies[i].name});
+				}			
+			
+				// return to caller
+				globalResponse();
+			});
 		});
 	});
 }
