@@ -225,91 +225,111 @@ function checkForLicense(callback) {
 function checkLicenseKey(callback) { 
 	var isLicensed = false;
 	
-	var checkKey = function () {
-		$.ajax({
-			url: 'http://brian-kieffer.com/keylicensecheck.php',
-			type: 'GET',
-			cache: false,
-			dataType: 'text',
-			data: {
-				'username': getCookie("username"),
-				'key': getCookie("key")
-			},
-			success: function (licensedViaKey) { 
-				isLicensed = (licensedViaKey.indexOf("true") != -1);
+	getCookie("username", function (usernameCookieValue) { 
+		getCookie("key", function (keyCookieValue) {
+			(checkKey = function () {
+				$.ajax({
+					url: 'http://brian-kieffer.com/keylicensecheck.php',
+					type: 'GET',
+					cache: false,
+					dataType: 'text',
+					data: {
+						'username': usernameCookieValue,
+						'key': keyCookieValue
+					},
+					success: function (licensedViaKey) { 
+						isLicensed = (licensedViaKey.indexOf("true") != -1);
 
-				setCookie("isLicensed", isLicensed);
-				callback(isLicensed);
-			},
-			error: function () { 
-				checkKey();
-			}
+						setCookie("isLicensed", isLicensed);
+						callback(isLicensed);
+					},
+					error: function () { 
+						checkKey();
+					}
+				});
+			})();
 		});
-	}
-	
-	checkKey();
+	});
 }
 
-function getCookie(cookieName) { 
-	return window.localStorage.getItem(cookieName);
+function getCookie(cookieName, callback) { 
+	chrome.storage.sync.get(cookieName, function (items) {
+		var cookieValue = items[cookieName]; // value from chrome.storage
+		
+		if (cookieValue === undefined) { // item isn't in chrome.storage
+			callback(window.localStorage.getItem(cookieName)); // use local storage instead
+		} else { // item is in chrome.storage
+			callback(cookieValue);
+		}
+	});
 }
 	
-function setCookie(cookieName, cookieValue) { 
-	window.localStorage.setItem(cookieName, cookieValue);
+function setCookie(cookieName, cookieValue, callback) {
+	var json = {};
+	json[cookieName] = cookieValue;
+	chrome.storage.sync.set(json, callback);
 }
 
 // set default Bing Pong Helper options if cookies aren't set
-if (!getCookie("emulateHumanSearchingBehavior")) { 
-	setCookie("emulateHumanSearchingBehavior", "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED");
-}
+getCookie("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+	if (emulateHumanSearchingBehaviorCookieValue === null) { 
+		setCookie("emulateHumanSearchingBehavior", "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED");
+	}
+});
 
-if (!getCookie("useAlternateLogoutMethod")) { 
-	setCookie("useAlternateLogoutMethod", "USE_ALTERNATE_LOGOUT_METHOD.ENABLED");
-}
+getCookie("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
+	if (useAlternateLogoutMethodCookieValue === null) { 
+		setCookie("useAlternateLogoutMethod", "USE_ALTERNATE_LOGOUT_METHOD.ENABLED");
+	}
+});
 
-if (!getCookie("useAlternateLoginMethod")) { 
-	setCookie("useAlternateLoginMethod", "USE_ALTERNATE_LOGIN_METHOD.ENABLED"); 
-}
+getCookie("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
+	if (useAlternateLoginMethodCookieValue === null) { 
+		setCookie("useAlternateLoginMethod", "USE_ALTERNATE_LOGIN_METHOD.ENABLED"); 
+	}
+});
 
 function logIntoAccount() { 
-	if (getCookie("useAlternateLoginMethod") == "USE_ALTERNATE_LOGIN_METHOD.ENABLED") { 
-		openBrowserWindow("https://login.live.com", function (window, tab) {
-			loginWindow = window;
-			loginTab = tab;
-		});
-	} else {
-		// get the challenge solution from the log-in page, which will be passed onto Bing via the PPFT parameter
-		$.ajax({
-			url: 'https://login.live.com/ppsecure/post.srf?wa=wsignin1.0&wreply=http:%2F%2Fwww.bing.com%2FPassport.aspx%3Frequrl%3Dhttp%253a%252f%252fwww.bing.com%252frewards%252fdashboard',
-			type: 'GET',
-			cache: 'false',
-			success: function (data1) {
-				// log into Bing using the challenge solution obtained with the first AJAX request 
-				$.ajax({
-					url: 'https://login.live.com/ppsecure/post.srf?wa=wsignin1.0&wreply=http:%2F%2Fwww.bing.com%2FPassport.aspx%3Frequrl%3Dhttp%253a%252f%252fwww.bing.com%252frewards%252fdashboard',
-					type: 'POST',
-					cache: 'true',
-					data: {
-						'login' : username,
-						'passwd' : password,
-						'type' : '11',
-						'PPFT' : data1.substring(data1.indexOf("name=\"PPFT\" id=\"i0327\" value=\"") + 30, data1.indexOf("\"/>\'")),
-						'PPSX' : 'Passport'
-					},
-					success: function (data2) { 
-						// return to caller
-						globalResponse();
-					},
-					error: function (data2) { 
-						logIntoAccount();
-					}
-				});
-			},
-			error: function (data1) { 
-				logIntoAccount();
-			}
-		});
-	}
+	getCookie("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
+		if (useAlternateLoginMethodCookieValue === "USE_ALTERNATE_LOGIN_METHOD.ENABLED") { 
+			openBrowserWindow("https://login.live.com", function (window, tab) {
+				loginWindow = window;
+				loginTab = tab;
+			});
+		} else {
+			// get the challenge solution from the log-in page, which will be passed onto Bing via the PPFT parameter
+			$.ajax({
+				url: 'https://login.live.com/ppsecure/post.srf?wa=wsignin1.0&wreply=http:%2F%2Fwww.bing.com%2FPassport.aspx%3Frequrl%3Dhttp%253a%252f%252fwww.bing.com%252frewards%252fdashboard',
+				type: 'GET',
+				cache: 'false',
+				success: function (data1) {
+					// log into Bing using the challenge solution obtained with the first AJAX request 
+					$.ajax({
+						url: 'https://login.live.com/ppsecure/post.srf?wa=wsignin1.0&wreply=http:%2F%2Fwww.bing.com%2FPassport.aspx%3Frequrl%3Dhttp%253a%252f%252fwww.bing.com%252frewards%252fdashboard',
+						type: 'POST',
+						cache: 'true',
+						data: {
+							'login' : username,
+							'passwd' : password,
+							'type' : '11',
+							'PPFT' : data1.substring(data1.indexOf("name=\"PPFT\" id=\"i0327\" value=\"") + 30, data1.indexOf("\"/>\'")),
+							'PPSX' : 'Passport'
+						},
+						success: function (data2) { 
+							// return to caller
+							globalResponse();
+						},
+						error: function (data2) { 
+							logIntoAccount();
+						}
+					});
+				},
+				error: function (data1) { 
+					logIntoAccount();
+				}
+			});
+		}
+	});
 }
 
 function getUsernameCode() { 
@@ -366,19 +386,21 @@ function inputLoginDetails() {
 }
 
 function logoutOfAccount() { 
-	if (getCookie("useAlternateLogoutMethod") == "USE_ALTERNATE_LOGOUT_METHOD.ENABLED") {
-		// no need to worry about calling globalResponse --- deleteMicrosoftCookies does that for us
-		deleteMicrosoftCookies();
-	} else {
-		backgroundFrame.src = "https://login.live.com/logout.srf";
-		backgroundFrame.onload = function () {
-			// clear the onload handler
-				backgroundFrame.onload = function () {};
-					
-			// return to caller
-			setTimeout(globalResponse, LOGOUT_PAGE_LOAD_DELAY);
-		};
-	}
+	getCookie("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
+		if (useAlternateLogoutMethodCookieValue === "USE_ALTERNATE_LOGOUT_METHOD.ENABLED") {
+			// no need to worry about calling globalResponse --- deleteMicrosoftCookies does that for us
+			deleteMicrosoftCookies();
+		} else {
+			backgroundFrame.src = "https://login.live.com/logout.srf";
+			backgroundFrame.onload = function () {
+				// clear the onload handler
+					backgroundFrame.onload = function () {};
+						
+				// return to caller
+				setTimeout(globalResponse, LOGOUT_PAGE_LOAD_DELAY);
+			};
+		}
+	});
 }	
 
 function deleteMicrosoftCookies() {
@@ -625,18 +647,20 @@ function executeSearchCaptchaScript() {
 	
 	setTimeout(function () {
 		checkForSearchCaptcha(function (tabIsDead, captchaDetected) {
-			if (captchaDetected || tabIsDead || getCookie("emulateHumanSearchingBehavior") == "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") {
-				// prevent some searches from "loading" twice
-				if (globalResponse) { 
-					globalResponse({tabIsDead: tabIsDead, captchaDetected: captchaDetected});
-					globalResponse = null;
+			getCookie("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+				if (captchaDetected || tabIsDead || emulateHumanSearchingBehaviorCookieValue == "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") {
+					// prevent some searches from "loading" twice
+					if (globalResponse) { 
+						globalResponse({tabIsDead: tabIsDead, captchaDetected: captchaDetected});
+						globalResponse = null;
+					}
+				} else {
+					chrome.tabs.executeScript(searchTab.id, {code: "document.getElementsByTagName('html')[0].innerHTML;", runAt: "document_start"}, function (source) {
+						searchWindowContents = source;
+						emulateHumanSearchingBehavior();
+					});
 				}
-			} else {
-				chrome.tabs.executeScript(searchTab.id, {code: "document.getElementsByTagName('html')[0].innerHTML;", runAt: "document_start"}, function (source) {
-					searchWindowContents = source;
-					emulateHumanSearchingBehavior();
-				});
-			}
+			});
 		});
 	}, 200 + minDelay + (maxDelay - minDelay - 200)*Math.random());
 }
@@ -704,19 +728,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
 	
 	return {requestHeaders: headers};
 }, {urls: ["<all_urls>"]}, ['requestHeaders', 'blocking']);
-
-/*
-chrome.webRequest.onBeforeRequest.addListener(function (details) { 
-	var goodDomains = ["bing.com", "bing.net", "live.com", "msn.com", "microsoft.com", chrome.runtime.id];
-	
-	// block requests in the searching tab that aren't from a "good website"
-	if (getCookie("emulateHumanSearchingBehavior") == "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED" && searchTab && details.tabId == searchTab.id && details.url.indexOf("bing.com") == -1 && details.url.indexOf("bing.net") == -1 && details.url.indexOf("live.com") == -1 && details.url.indexOf("msn.com") == -1 && details.url.indexOf("microsoft.com") == -1 && details.url.indexOf(chrome.runtime.id) == -1) { 
-		return {redirectUrl: chrome.extension.getURL("search_result_blocked.html")};
-	}
-	
-	return {cancel: false};
-}, {urls: ["<all_urls>"]}, ['blocking']);
-*/
 
 chrome.webRequest.onHeadersReceived.addListener(function (details) {
 	var headers = details.responseHeaders;
@@ -844,7 +855,9 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 			globalResponse({queries: queries});
 		});
 	} else if (message.action == "checkHumanBehavior") {
-		globalResponse({isEnabled: getCookie("emulateHumanSearchingBehavior") == "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED"});
+		getCookie("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+			globalResponse({isEnabled: emulateHumanSearchingBehaviorCookieValue == "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED"});
+		});
 	} else if (message.action == "getSearchWindowContents") { 
 		globalResponse({contents: searchWindowContents[0]});
 	} else {
