@@ -67,8 +67,8 @@ function onSettingsChange() {
 			}
 		});
 	} else {
-		// release the "background", "alarms", and "notifications" permissions
-		chrome.permissions.remove({permissions: ['background', 'alarms', 'notifications']}, function (removed) {});
+		// release the "background" and "notifications" permissions --- "alarms" will be released in bp-helper.js after cleanup
+		chrome.permissions.remove({permissions: ['background', 'notifications']}, function (removed) {});
 	}
 }
 

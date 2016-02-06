@@ -916,9 +916,11 @@ chrome.storage.onChanged.addListener(function (changes, areaName) {
 				}
 			});
 		} else {
-			// clear the alarms and listener
+			// cleanup: clear the alarms and listener, and remove the "alarms" permission
 			chrome.alarms.clearAll(function () { 
-				chrome.alarms.onAlarm.removeListener(alarmListener);
+				chrome.alarms.onAlarm.removeListener(alarmListener, function () { 
+					chrome.permissions.remove({permissions: 'alarms'}, function (removed) {});
+				});
 			});
 		}
 	});
