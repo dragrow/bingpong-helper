@@ -736,21 +736,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
 		chrome.pageAction.show(tabId);
 	}
 	
-/*
-	if (dashboardTab && tabId == dashboardTab.id && dashboardTab.url.indexOf("/dashboard") != -1 && changeInfo.status == "complete") {
-		if (processNextTask && processNextTaskFlag) { 
-			setTimeout(processNextTask, DASHBOARD_TASK_CLICK_DELAY);
-			processNextTaskFlag = false;
-		}
-	}
-	
-	// if processNextTask is not null, mute the dashboard window tab
-	if (processNextTask && dashboardWindow) { 
-		chrome.tabs.query({windowId: dashboardWindow.id}, function (dashboardTabsList) { 
-			chrome.tabs.update(dashboardTabsList[0].id, {muted: true});
-		});
-	}
-			
 	if (searchTab && tabId == searchTab.id && changeInfo.status == "complete") { 
 		if (searchTimeout) { 
 			executeSearchCaptchaScript();
@@ -760,7 +745,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
 	if (loginTab && tabId == loginTab.id && changeInfo.status == "complete") { 
 		setTimeout(inputLoginDetails, LOGIN_PAGE_LOAD_DELAY);
 	}
-*/
 });
 
 chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResponse) {
