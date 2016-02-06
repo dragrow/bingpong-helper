@@ -17,31 +17,31 @@ function setCookie(cookieName, cookieValue, callback) {
 }
 
 function parseCookieInfo() { 
-	getCookie("useAlternateLoginMethod", function (cookieValue) { 
-		if (cookieValue === "USE_ALTERNATE_LOGIN_METHOD.DISABLED") { 
+	getCookie("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
+		if (useAlternateLoginMethodCookieValue === "USE_ALTERNATE_LOGIN_METHOD.DISABLED") { 
 			document.getElementById('useAlternateLoginMethod').checked = false;
 		}
 	});
 	
-	getCookie("useAlternateLogoutMethod", function (cookieValue) { 
-		if (cookieValue === "USE_ALTERNATE_LOGOUT_METHOD.DISABLED") {
+	getCookie("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
+		if (useAlternateLogoutMethodCookieValue === "USE_ALTERNATE_LOGOUT_METHOD.DISABLED") {
 			document.getElementById('useAlternateLogoutMethod').checked = false;
 		}
 	});
 	
-	getCookie("emulateHumanSearchingBehavior", function (cookieValue) { 
-		if (cookieValue === "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") { 
+	getCookie("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+		if (emulateHumanSearchingBehaviorCookieValue === "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") { 
 			document.getElementById('emulateHumanSearchingBehavior').checked = false;
 		}
 	});
 	
-	getCookie("autoRunOption", function (cookieValue) { 
-		if (cookieValue === "AUTO_RUN.ENABLED") { 
+	getCookie("autoRunOption", function (autoRunOptionCookieValue) {	
+		if (autoRunOptionCookieValue === "AUTO_RUN.ENABLED") { 
 			document.getElementById('autoRunOption').checked = true;
 			document.getElementById('autoRunTime').disabled = false;
 			
-			getCookie("autoRunTime", function (cookieValue) { 
-				document.getElementById('autoRunTime').selectedIndex = cookieValue;
+			getCookie("autoRunTime", function (autoRunTimeCookieValue) { 
+				document.getElementById('autoRunTime').selectedIndex = autoRunTimeCookieValue;
 			});
 		}
 	});
@@ -55,7 +55,20 @@ function onSettingsChange() {
 	setCookie("autoRunTime", document.getElementById('autoRunTime').selectedIndex);
 	
 	if (document.getElementById('autoRunOption').checked) {
-		document.getElementById('autoRunTime').disabled = false;
+		// get "background", "alarms", and "notifications" permissions
+		chrome.permissions.request({permissions: ['background', 'alarms', 'notifications']}, function (granted) { 
+			if (granted) { 
+				document.getElementById('autoRunTime').disabled = false;
+			} else {
+				alert("We were unable to acquire the required permissions. Please try again later.");
+				document.getElementById('autoRunOption').checked = false;
+				document.getElementById('autoRunOption').disabled = true;
+				setCookie("autoRunOption", "AUTO_RUN.DISABLED");
+			}
+		});
+	} else {
+		// release the "background", "alarms", and "notifications" permissions
+		chrome.permissions.remove({permissions: ['background', 'alarms', 'notifications']}, function (removed) {});
 	}
 }
 
@@ -113,8 +126,8 @@ function checkForLicense(callback) {
 function checkLicenseKey(callback) { 
 	var isLicensed = false;
 	
-	getCookie("username", function (username) { 
-		getCookie("key", function (key) { 
+	getCookie("username", function (usernameCookieValue) { 
+		getCookie("key", function (keyCookieValue) { 
 			(checkKey = function () {
 				$.ajax({
 					url: 'http://brian-kieffer.com/keylicensecheck.php',
@@ -122,8 +135,8 @@ function checkLicenseKey(callback) {
 					cache: false,
 					dataType: 'text',
 					data: {
-						'username': username,
-						'key': key
+						'username': usernameCookieValue,
+						'key': keyCookieValue
 					},
 					success: function (licensedViaKey) { 
 						isLicensed = (licensedViaKey.indexOf("true") !== -1);
@@ -146,15 +159,15 @@ function updateLicenseDisplay(licensedViaKey, licensedViaIP) {
 	var paymentOptions = document.getElementById('paymentOptions');
 	
 	paymentOptions.innerHTML = "";
-	getCookie("isLicensed", function (licensedValue) {
-		if (licensedValue) { 
+	getCookie("isLicensed", function (isLicensedCookieValue) {
+		if (isLicensedCookieValue) { 
 			statusText.innerHTML = "Licensed";
 			statusText.style.color = "#00FF00";
 			
 			if (licensedViaKey) { 
-				getCookie("username", function (username) { 
-					getCookie("key", function (key) { 
-						statusText.innerHTML += " (username: " + username + ", key: " + key + ")";
+				getCookie("username", function (usernameCookieValue) { 
+					getCookie("key", function (keyCookieValue) { 
+						statusText.innerHTML += " (username: " + usernameCookieValue + ", key: " + keyCookieValue + ")";
 					});
 				});
 			}
