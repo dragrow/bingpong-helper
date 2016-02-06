@@ -63,6 +63,17 @@ function checkExtensions() {
 }
 */
 
+function onTabLoad(tab, callback) { 
+	var listener;
+	
+	chrome.tabs.onUpdated.addListener(listener = function (tabId, changeInfo, tabs) { 
+		if (tabId === tab.id && changeInfo.status === "complete") { 
+			chrome.tabs.onUpdated.removeListener(listener);
+			callback();
+		}
+	});
+}
+
 function getWikiArticles(callback) { 
 	$.ajax({
 		url: "https://en.wikipedia.org/w/api.php?format=json&action=query&list=random&rnlimit=10&rnnamespace=0",
@@ -418,17 +429,18 @@ function deleteMicrosoftCookies() {
 }
 	
 
-function performGETRequest(URL, responseIsJSON) { 
+function performGETRequest(URL, responseIsJSON, callback) { 
 	$.ajax({
       	url: URL,
       	type: 'GET',
 		dataType: (responseIsJSON ? 'json' : 'text'),
       	success: function (data) { 
       		// return to caller
-      		setTimeout(function () { globalResponse({contents: data}); }, 200);
+      		callback(data);
       	},
       	error: function (data) { 
-      		performGETRequest(URL);
+			// an error occurred, so try again
+      		performGETRequest(URL, responseIsJSON, callback);
       	}
     });
 }
@@ -457,37 +469,41 @@ function openOutlook() {
 }
 
 function performTasks(taskList) { 
+	var clickOnTask;
+	
 	// open the Bing Rewards dashboard in a new window
-	openBrowserWindow("https://bing.com/rewards/dashboard", function (window, tab) { 
-		dashboardWindow = window;
-		dashboardTab = tab;
-		
-		processNextTask = function () {
-			var taskURL = taskList.pop();
-			
-			// get the contents of emulation.js
-			$.ajax({
-				url: chrome.extension.getURL("scripts/emulation.js"),
-				type: 'GET',
-				dataType: 'text',
-				success: function (emulationCode) { 
-					// click on the the task on the dashboard that corresponds to this task's URL
-					chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + taskURL + "\", " + DASHBOARD_TASK_CLICK_DELAY + ", true);", runAt: "document_start"}, function (result) { 
-						setTimeout(function () { 
-							if (taskList.length > 0) {
-								chrome.tabs.update(tab.id, {url: "https://bing.com/rewards/dashboard"});
-								processNextTaskFlag = true;
+	openBrowserWindow("https://bing.com/rewards/dashboard", function (window, tab) { 	
+		onTabLoad(tab, function () { // dashboard tab loaded
+			setTimeout(function () { // wait the FIRST_TASK_ATTEMPT_DELAY before attempting the first task
+				// click on the first dashboard task
+				(clickOnTask = function (url) { 
+					// get the contents of scripts/emulation.js and use it
+					performGETRequest(chrome.extension.getURL("scripts/emulation.js"), false, function (emulationCode) {
+						// emulate a click on the corresponding dashboard task
+						chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + url + "\", " + DASHBOARD_TASK_CLICK_DELAY + ", true);", runAt: "document_start"}, function (result) {
+							// if there are any tasks left, do the next task after a delay
+							if (taskList.length > 0) { 
+								setTimeout(function () {
+									/** clicking on a dashboard task normally opens a tab with this url naturally
+										we don't want this to occur since this causes the new tab to steal focus
+										to work around this, clickOnLinkWithUrl() blocks the opening and we open it manually here
+									*/
+									chrome.tabs.create({windowId: window.id, index: 1, url: url}, function (tab) {
+										onTabLoad(tab, function () { // dashboard task loaded
+											chrome.tabs.update(tab.id, {muted: true}); // mute the tab (since some tasks have auto-playing videos)
+											setTimeout(clickOnTask(taskList.pop()), DASHBOARD_TASK_CLICK_DELAY); // work on the next task after a delay
+										});
+									});
+								}, DASHBOARD_TASK_CLICK_DELAY);
 							} else {
-								processNextTask = null;
-								dashboardWindow = null;
-								processNextTaskFlag = true;
+								// close the window and return control to Bing Pong
 								chrome.windows.remove(window.id, globalResponse);
 							}
-						}, TASK_TO_DASHBOARD_DELAY + DASHBOARD_TASK_CLICK_DELAY);
+						});
 					});
-				}
-			});
-		}
+				})(taskList.pop());
+			}, FIRST_TASK_ATTEMPT_DELAY);
+		});
 	});
 }
 		
@@ -720,6 +736,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
 		chrome.pageAction.show(tabId);
 	}
 	
+/*
 	if (dashboardTab && tabId == dashboardTab.id && dashboardTab.url.indexOf("/dashboard") != -1 && changeInfo.status == "complete") {
 		if (processNextTask && processNextTaskFlag) { 
 			setTimeout(processNextTask, DASHBOARD_TASK_CLICK_DELAY);
@@ -743,6 +760,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
 	if (loginTab && tabId == loginTab.id && changeInfo.status == "complete") { 
 		setTimeout(inputLoginDetails, LOGIN_PAGE_LOAD_DELAY);
 	}
+*/
 });
 
 chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResponse) {
@@ -782,7 +800,7 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 		logoutLoads = 0;
 		logoutOfAccount();
 	} else if (message.action == "performGETRequest") { 
-		performGETRequest(message.ajaxURL, message.responseIsJSON);
+		performGETRequest(message.ajaxURL, message.responseIsJSON, globalResponse);
 	} else if (message.action == "openDashboardForVerifying") {
 		dashboardLoads = 0;
 		dashboardFunctionLoads = 1;
