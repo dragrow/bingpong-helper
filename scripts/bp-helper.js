@@ -768,12 +768,8 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 			bpWindow = window;
 			
 			chrome.contentSettings.location.clear({scope: "regular"}, function () { // workaround for Chrome bug
-				chrome.contentSettings.popups.clear({scope: "regular"}, function () {
-					chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
-						chrome.contentSettings.popups.set({primaryPattern: "*://*.bing.com/*", setting: "allow"}, function () {
-							globalResponse({bphVersion: chrome.app.getDetails().version});
-						});
-					});
+				chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
+					globalResponse({bphVersion: chrome.app.getDetails().version});
 				});
 			});
 		});
