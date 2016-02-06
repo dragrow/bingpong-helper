@@ -1,30 +1,50 @@
-function getCookie(cookieName) { 
-	return window.localStorage.getItem(cookieName);
+function getCookie(cookieName, callback) { 
+	chrome.storage.sync.get(cookieName, function (items) {
+		var cookieValue = items[cookieName]; // value from chrome.storage
+		
+		if (cookieValue === undefined) { // item isn't in chrome.storage
+			callback(window.localStorage.getItem(cookieName)); // use local storage instead
+		} else { // item is in chrome.storage
+			callback(cookieValue);
+		}
+	});
 }
 	
-function setCookie(cookieName, cookieValue) { 
-	window.localStorage.setItem(cookieName, cookieValue);
+function setCookie(cookieName, cookieValue, callback) {
+	var json = {};
+	json[cookieName] = cookieValue;
+	chrome.storage.sync.set(json, callback);
 }
 
 function parseCookieInfo() { 
-	// check if the cookie says to disable it since it is enabled by default
-	if (getCookie("useAlternateLoginMethod") == "USE_ALTERNATE_LOGIN_METHOD.DISABLED") { 
-		document.getElementById('useAlternateLoginMethod').checked = false;
-	}
+	getCookie("useAlternateLoginMethod", function (cookieValue) { 
+		if (cookieValue === "USE_ALTERNATE_LOGIN_METHOD.DISABLED") { 
+			document.getElementById('useAlternateLoginMethod').checked = false;
+		}
+	});
 	
-	if (getCookie("useAlternateLogoutMethod") == "USE_ALTERNATE_LOGOUT_METHOD.DISABLED") {
-		document.getElementById('useAlternateLogoutMethod').checked = false;
-	}
+	getCookie("useAlternateLogoutMethod", function (cookieValue) { 
+		if (cookieValue === "USE_ALTERNATE_LOGOUT_METHOD.DISABLED") {
+			document.getElementById('useAlternateLogoutMethod').checked = false;
+		}
+	});
 	
-	if (getCookie("emulateHumanSearchingBehavior") == "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") { 
-		document.getElementById('emulateHumanSearchingBehavior').checked = false;
-	}
+	getCookie("emulateHumanSearchingBehavior", function (cookieValue) { 
+		if (cookieValue === "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") { 
+			document.getElementById('emulateHumanSearchingBehavior').checked = false;
+		}
+	});
 	
-	if (getCookie("autoRunOption") == "AUTO_RUN.ENABLED") { 
-		document.getElementById('autoRunOption').checked = true;
-		document.getElementById('autoRunTime').disabled = false;
-		document.getElementById('autoRunTime').selectedIndex = getCookie("autoRunTime");
-	}
+	getCookie("autoRunOption", function (cookieValue) { 
+		if (cookieValue === "AUTO_RUN.ENABLED") { 
+			document.getElementById('autoRunOption').checked = true;
+			document.getElementById('autoRunTime').disabled = false;
+			
+			getCookie("autoRunTime", function (cookieValue) { 
+				document.getElementById('autoRunTime').selectedIndex = cookieValue;
+			});
+		}
+	});
 }
 	
 function onSettingsChange() { 
@@ -61,7 +81,7 @@ function checkForLicense(callback) {
 					updateLicenseDisplay(true, false);
 				} else {	
 					// as a final check, check if the user is licensed via their IP address
-					var checkLicenseViaIP = function () {
+					(checkLicenseViaIP = function () {
 						$.ajax({
 							url: 'http://brian-kieffer.com/iplicensecheck.php',
 							type: 'GET',
@@ -77,9 +97,7 @@ function checkForLicense(callback) {
 								checkLicenseViaIP();
 							}
 						});
-					}
-					
-					checkLicenseViaIP();
+					})();
 				}
 			});
 		}
@@ -95,29 +113,31 @@ function checkForLicense(callback) {
 function checkLicenseKey(callback) { 
 	var isLicensed = false;
 	
-	var checkKey = function () {
-		$.ajax({
-			url: 'http://brian-kieffer.com/keylicensecheck.php',
-			type: 'GET',
-			cache: false,
-			dataType: 'text',
-			data: {
-				'username': getCookie("username"),
-				'key': getCookie("key")
-			},
-			success: function (licensedViaKey) { 
-				isLicensed = (licensedViaKey.indexOf("true") != -1);
+	getCookie("username", function (username) { 
+		getCookie("key", function (key) { 
+			(checkKey = function () {
+				$.ajax({
+					url: 'http://brian-kieffer.com/keylicensecheck.php',
+					type: 'GET',
+					cache: false,
+					dataType: 'text',
+					data: {
+						'username': username,
+						'key': key
+					},
+					success: function (licensedViaKey) { 
+						isLicensed = (licensedViaKey.indexOf("true") !== -1);
 
-				setCookie("isLicensed", isLicensed);
-				callback(isLicensed);
-			},
-			error: function () { 
-				checkKey();
-			}
+						setCookie("isLicensed", isLicensed);
+						callback(isLicensed);
+					},
+					error: function () { 
+						checkKey(callback);
+					}
+				});
+			})();
 		});
-	}
-	
-	checkKey();
+	});
 }
 	
 
@@ -126,52 +146,57 @@ function updateLicenseDisplay(licensedViaKey, licensedViaIP) {
 	var paymentOptions = document.getElementById('paymentOptions');
 	
 	paymentOptions.innerHTML = "";
-	
-	if (getCookie("isLicensed") === "true") { 
-		statusText.innerHTML = "Licensed";
-		statusText.style.color = "#00FF00";
-		
-		if (licensedViaKey) { 
-			statusText.innerHTML += " (username: " + getCookie("username") + ", key: " + getCookie("key") + ")";
-		}
-		
-		if (licensedViaIP) { 
-			statusText.innerHTML += " (via IP)";
-		}
-		
-		enableProFeatures();
-	} else {
-		statusText.innerHTML = "Unlicensed";
-		statusText.style.color = "#FF0000";
-		
-		paymentOptions.innerHTML = "<button id=\"buyLicense\">Purchase license via Google Wallet ($9.99)</button>";
-		paymentOptions.innerHTML += "  <br><button id=\"alternatePaymentMethod\">Use alternate payment method</button>";
-		
-		document.getElementById('buyLicense').addEventListener('click', onBuyButtonClick);
-		document.getElementById('alternatePaymentMethod').addEventListener('click', function () {
-			paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:brian@bing-pong.com\">brian@bing-pong.com</a> with your preferred choice of username and payment.";
-			paymentOptions.innerHTML += " Enter in your username and key below.";
-			paymentOptions.innerHTML += "<br><br>Username: <input id=\"username\" size=25>";
-			paymentOptions.innerHTML += "<br>License key (18 digits): <input id=\"key\" size=25>";
-			paymentOptions.innerHTML += "<br><br><center><button id=\"checkKey\">Check license information</button></center>";
-			paymentOptions.innerHTML += "<br><center><span id=\"keyCheckStatus\">&nbsp;</span></center>";
+	getCookie("isLicensed", function (licensedValue) {
+		if (licensedValue) { 
+			statusText.innerHTML = "Licensed";
+			statusText.style.color = "#00FF00";
 			
-			document.getElementById('checkKey').addEventListener('click', function () { 
-				setCookie("username", document.getElementById('username').value);
-				setCookie("key", document.getElementById('key').value);
-			
-				checkLicenseKey(function (licensedViaKey) { 
-					if (licensedViaKey) { 
-						updateLicenseDisplay(licensedViaKey, false);
-					} else {
-						document.getElementById('keyCheckStatus').innerHTML = "<b>Invalid username/key combination.</b>";
-					}
+			if (licensedViaKey) { 
+				getCookie("username", function (username) { 
+					getCookie("key", function (key) { 
+						statusText.innerHTML += " (username: " + username + ", key: " + key + ")";
+					});
 				});
+			}
+			
+			if (licensedViaIP) { 
+				statusText.innerHTML += " (via IP)";
+			}
+			
+			enableProFeatures();
+		} else {
+			statusText.innerHTML = "Unlicensed";
+			statusText.style.color = "#FF0000";
+			
+			paymentOptions.innerHTML = "<button id=\"buyLicense\">Purchase license via Google Wallet ($9.99)</button>";
+			paymentOptions.innerHTML += "  <br><button id=\"alternatePaymentMethod\">Use alternate payment method</button>";
+			
+			document.getElementById('buyLicense').addEventListener('click', onBuyButtonClick);
+			document.getElementById('alternatePaymentMethod').addEventListener('click', function () {
+				paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:brian@bing-pong.com\">brian@bing-pong.com</a> with your preferred choice of username and payment.";
+				paymentOptions.innerHTML += " Enter in your username and key below.";
+				paymentOptions.innerHTML += "<br><br>Username: <input id=\"username\" size=25>";
+				paymentOptions.innerHTML += "<br>License key (18 digits): <input id=\"key\" size=25>";
+				paymentOptions.innerHTML += "<br><br><center><button id=\"checkKey\">Check license information</button></center>";
+				paymentOptions.innerHTML += "<br><center><span id=\"keyCheckStatus\">&nbsp;</span></center>";
+				
+				document.getElementById('checkKey').addEventListener('click', function () { 
+					setCookie("username", document.getElementById('username').value);
+					setCookie("key", document.getElementById('key').value);
+				
+					checkLicenseKey(function (licensedViaKey) { 
+						if (licensedViaKey) { 
+							updateLicenseDisplay(licensedViaKey, false);
+						} else {
+							document.getElementById('keyCheckStatus').innerHTML = "<b>Invalid username/key combination.</b>";
+						}
+					});
+				});
+			
+				disableProFeatures();
 			});
-		
-			disableProFeatures();
-		});
-	}
+		}
+	});
 }
 
 function getPurchasesFailed() { // Google's license check failed, but the user's key or IP may give them a license	
@@ -192,7 +217,7 @@ function getPurchasesFailed() { // Google's license check failed, but the user's
 						setCookie("isLicensed", isLicensed);
 						
 						if (isLicensed) { 
-							updateLicenseDisplay(licensedViaKey);
+							updateLicenseDisplay(false, licensedViaKey);
 						} else {
 							var statusText = document.getElementById('licenseStatus');
 							var paymentOptions = document.getElementById('paymentOptions');
