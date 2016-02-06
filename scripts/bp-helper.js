@@ -74,6 +74,32 @@ function onTabLoad(tab, callback) {
 	});
 }
 
+function createAutoRunAlarm(addADay) { 
+	// set an alarm that'll open Bing Pong at the required time
+	getCookie("autoRunTime", function (autoRunTimeCookieValue) { 
+		var date = new Date();
+		nextRunTime = date.getTime(); // start with the current time
+		nextRunTime	-= date.getMilliseconds();
+		nextRunTime -= 1000*date.getSeconds();
+		nextRunTime -= 1000*60*date.getMinutes();
+		nextRunTime -= 1000*60*60*date.getHours(); // normalize the time to midnight
+		nextRunTime += 1000*60*60*autoRunTimeCookieValue; // set the next run time to the user requested value
+		
+		if (addADay) {
+			nextRunTime += 1000*60*60*24;
+		}
+		
+		// set the alarm at the requested time with a period of 24 hours
+		chrome.alarms.create("bpAutoRun_notification", {when: nextRunTime - 1000*60*10}); // notify the user 10 minutes in advance
+		chrome.alarms.create("bpAutoRun", {when: nextRunTime});
+	});
+}
+
+function clearAutoRunAlarm(callback) { 
+	chrome.alarms.clear("bpAutoRun_notification");
+	chrome.alarms.clear("bpAutoRun");
+}
+
 function getWikiArticles(callback) { 
 	$.ajax({
 		url: "https://en.wikipedia.org/w/api.php?format=json&action=query&list=random&rnlimit=10&rnnamespace=0",
@@ -865,3 +891,42 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 
 checkForLicense();
 // checkExtensions();
+
+// check to see if Bing Pong is set to run automatically
+getCookie("autoRunOption", function (autoRunOptionCookieValue) { 
+	if (autoRunOptionCookieValue === "AUTO_RUN.ENABLED") {
+		chrome.alarms.clearAll(createAutoRunAlarm);
+		createAutoRunAlarm();
+	}
+});
+
+// perform the same check if the storage has changed
+chrome.storage.onChanged.addListener(function (changes, areaName) { 
+	getCookie("autoRunOption", function (autoRunOptionCookieValue) { 
+		if (autoRunOptionCookieValue === "AUTO_RUN.ENABLED") {
+			chrome.alarms.clearAll(createAutoRunAlarm);
+		}
+	});
+});
+
+// listen for alarms
+chrome.alarms.onAlarm.addListener(function (alarm) { 
+	if (alarm.name === "bpAutoRun_notification") { // notification alarm
+		// notify the user that Bing Pong is about to run
+		chrome.notifications.create("run_notification", {
+			type: "basic", 
+			iconUrl: "bp128.png", 
+			title: "Bing Pong will automatically run in a moment.", 
+			message: ""
+		});
+	}
+	
+	if (alarm.name === "bpAutoRun") { // auto-run alarm
+		// reset the alarm with a 24-hour push back
+		chrome.alarms.clearAll(createAutoRunAlarm);
+		
+		// open up Bing Pong in a minimized window
+		openBrowserWindow("http://bp21alt.bingpong.net/index.php?runonpageload=1", function (window, tab) {});
+	}
+});
+				
