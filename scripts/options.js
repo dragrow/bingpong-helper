@@ -68,7 +68,10 @@ function onSettingsChange() {
 		});
 	} else {
 		// release the "background" and "notifications" permissions --- "alarms" will be released in bp-helper.js after cleanup
-		chrome.permissions.remove({permissions: ['background', 'notifications']}, function (removed) {});
+		chrome.permissions.remove({permissions: ['background', 'notifications']}, function (removed) {
+			// disable auto-run time dropdown
+			document.getElementById('autoRunTime').disabled = true;
+		});
 	}
 }
 
