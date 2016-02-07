@@ -37,26 +37,23 @@ function alarmListener(alarm) {
 	}
 }
 
-// check for the "alarm" permissions on extension load, and set the listener if found
-chrome.permissions.getAll(function (currentPermissions) {
-	if (currentPermissions.permissions.indexOf('alarms') !== -1) { 
+// check for the auto-run option on extension load, and set the alarms and listener if found
+getCookie("autoRunOption", function (autoRunOptionCookieValue) { 
+	if (autoRunOptionCookieValue === "AUTO_RUN.ENABLED") { 
 		chrome.alarms.onAlarm.addListener(alarmListener);
-		getCookie("autoRunOption", function (autoRunOptionCookieValue) { 
-			if (autoRunOptionCookieValue === "AUTO_RUN.ENABLED") { 
-				chrome.alarms.clearAll(createAutoRunAlarm);
-			}
-		});
+		chrome.alarms.clearAll(createAutoRunAlarm);
 	}
 });
 
 chrome.storage.onChanged.addListener(function (changes, areaName) { 
 	if (changes["autoRunOption"]) { 
-		if (changes["autoRunOption"]["newValue"] === "AUTO_RUN.ENABLED") { 
+		if (changes["autoRunOption"]["newValue"] === "AUTO_RUN.ENABLED") {
+			// note: this shouldn't conflict with the above alarms and listener, since they would be removed below
 			chrome.alarms.onAlarm.addListener(alarmListener);
 			chrome.alarms.clearAll(createAutoRunAlarm);
 		} else {
+			chrome.alarms.clearAll();
 			chrome.alarms.onAlarm.removeListener(alarmListener);
-			chrome.permissions.remove({permissions: ['alarms']}, function (removed) {});
 		}
 	}
 });

@@ -55,8 +55,8 @@ function onSettingsChange() {
 	setCookie("autoRunTime", document.getElementById('autoRunTime').selectedIndex);
 	
 	if (document.getElementById('autoRunOption').checked) {
-		// get "background", "alarms", and "notifications" permissions
-		chrome.permissions.request({permissions: ['background', 'alarms', 'notifications']}, function (granted) { 
+		// get "background" and "notifications" permissions
+		chrome.permissions.request({permissions: ['background', 'notifications']}, function (granted) { 
 			if (granted) { 
 				document.getElementById('autoRunTime').disabled = false;
 			} else {
@@ -67,7 +67,7 @@ function onSettingsChange() {
 			}
 		});
 	} else {
-		// release the "background" and "notifications" permissions --- "alarms" will removed in alarms.js after cleanup
+		// release the "background" and "notifications" permissions
 		chrome.permissions.remove({permissions: ['background', 'notifications']}, function (removed) {
 			// disable auto-run time dropdown
 			document.getElementById('autoRunTime').disabled = true;
