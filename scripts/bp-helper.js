@@ -75,28 +75,6 @@ function onTabLoad(tab, callback) {
 	});
 }
 
-function createAutoRunAlarm() { 
-	// set an alarm that'll open Bing Pong at the required time
-	getCookie("autoRunTime", function (autoRunTimeCookieValue) { 
-		var date = new Date();
-		nextRunTime = date.getTime(); // start with the current time
-		nextRunTime	-= date.getMilliseconds();
-		nextRunTime -= 1000*date.getSeconds();
-		nextRunTime -= 1000*60*date.getMinutes();
-		nextRunTime -= 1000*60*60*date.getHours(); // normalize the time to midnight
-		nextRunTime += 1000*60*60*autoRunTimeCookieValue; // set the next run time to the user requested value
-		
-		if (nextRunTime < date.getTime()) { // today's run would have been in the past
-			// schedule the alarm for the next day
-			nextRunTime += 1000*60*60*24;
-		}
-		
-		// set the alarm at the requested time with a period of 24 hours
-		chrome.alarms.create("bpAutoRun_notification", {when: nextRunTime + 1000*60*6, periodInMinutes: 24*60}); // notify the user 10 minutes in advance
-		chrome.alarms.create("bpAutoRun", {when: nextRunTime + 1000*60*7, periodInMinutes: 24*60});
-	});
-}
-
 function getWikiArticles(callback) { 
 	$.ajax({
 		url: "https://en.wikipedia.org/w/api.php?format=json&action=query&list=random&rnlimit=10&rnnamespace=0",
