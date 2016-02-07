@@ -92,8 +92,8 @@ function createAutoRunAlarm() {
 		}
 		
 		// set the alarm at the requested time with a period of 24 hours
-		chrome.alarms.create("bpAutoRun_notification", {when: nextRunTime - 1000*60*10, periodInMinutes: 24*60}); // notify the user 10 minutes in advance
-		chrome.alarms.create("bpAutoRun", {when: nextRunTime, periodInMinutes: 24*60});
+		chrome.alarms.create("bpAutoRun_notification", {when: nextRunTime + 1000*60*6, periodInMinutes: 24*60}); // notify the user 10 minutes in advance
+		chrome.alarms.create("bpAutoRun", {when: nextRunTime + 1000*60*7, periodInMinutes: 24*60});
 	});
 }
 
@@ -888,40 +888,3 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 
 checkForLicense();
 // checkExtensions();
-
-// check to see if Bing Pong is set to run automatically
-chrome.storage.onChanged.addListener(function (changes, areaName) { 
-	getCookie("autoRunOption", function (autoRunOptionCookieValue) {
-		if (autoRunOptionCookieValue === "AUTO_RUN.ENABLED") {
-			createAutoRunAlarm(); // set up an alarm
-			
-			// listen for alarms
-			chrome.alarms.onAlarm.addListener(alarmListener = function (alarm) { 
-				if (alarm.name === "bpAutoRun_notification") { // notification alarm
-					// notify the user that Bing Pong is about to run
-					chrome.notifications.create("run_notification", {
-						type: "basic", 
-						iconUrl: "bp128.png", 
-						title: "Bing Pong will automatically run in a moment.", 
-						message: ""
-					});
-				}
-				
-				if (alarm.name === "bpAutoRun") { // auto-run alarm
-					// reset the alarm with a 24-hour push back
-					chrome.alarms.clearAll(createAutoRunAlarm);
-					
-					// open up Bing Pong in a minimized window
-					openBrowserWindow("http://bp21alt.bingpong.net/index.php?runonpageload=1", function (window, tab) {});
-				}
-			});
-		} else {
-			// cleanup: clear the alarms and listener, and remove the "alarms" permission
-			chrome.alarms.clearAll(function () { 
-				chrome.alarms.onAlarm.removeListener(alarmListener, function () { 
-					chrome.permissions.remove({permissions: 'alarms'}, function (removed) {});
-				});
-			});
-		}
-	});
-});			
