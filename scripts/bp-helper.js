@@ -32,6 +32,7 @@ var dictionaryIndex = 1;
 var isCanary = true;
 var processNextTask;
 var processNextTaskFlag = true;
+var alarmListener;
 
 /*
 chrome.management.onInstalled.addListener(function (installedExtensionInfo) { 
@@ -62,6 +63,17 @@ function checkExtensions() {
 	});
 }
 */
+
+function onTabLoad(tab, callback) { 
+	var listener;
+	
+	chrome.tabs.onUpdated.addListener(listener = function (tabId, changeInfo, tabs) { 
+		if (tabId === tab.id && changeInfo.status === "complete") { 
+			chrome.tabs.onUpdated.removeListener(listener);
+			callback();
+		}
+	});
+}
 
 function getWikiArticles(callback) { 
 	$.ajax({
@@ -214,91 +226,111 @@ function checkForLicense(callback) {
 function checkLicenseKey(callback) { 
 	var isLicensed = false;
 	
-	var checkKey = function () {
-		$.ajax({
-			url: 'http://brian-kieffer.com/keylicensecheck.php',
-			type: 'GET',
-			cache: false,
-			dataType: 'text',
-			data: {
-				'username': getCookie("username"),
-				'key': getCookie("key")
-			},
-			success: function (licensedViaKey) { 
-				isLicensed = (licensedViaKey.indexOf("true") != -1);
+	getCookie("username", function (usernameCookieValue) { 
+		getCookie("key", function (keyCookieValue) {
+			(checkKey = function () {
+				$.ajax({
+					url: 'http://brian-kieffer.com/keylicensecheck.php',
+					type: 'GET',
+					cache: false,
+					dataType: 'text',
+					data: {
+						'username': usernameCookieValue,
+						'key': keyCookieValue
+					},
+					success: function (licensedViaKey) { 
+						isLicensed = (licensedViaKey.indexOf("true") != -1);
 
-				setCookie("isLicensed", isLicensed);
-				callback(isLicensed);
-			},
-			error: function () { 
-				checkKey();
-			}
+						setCookie("isLicensed", isLicensed);
+						callback(isLicensed);
+					},
+					error: function () { 
+						checkKey();
+					}
+				});
+			})();
 		});
-	}
-	
-	checkKey();
+	});
 }
 
-function getCookie(cookieName) { 
-	return window.localStorage.getItem(cookieName);
+function getCookie(cookieName, callback) { 
+	chrome.storage.sync.get(cookieName, function (items) {
+		var cookieValue = items[cookieName]; // value from chrome.storage
+		
+		if (cookieValue === undefined) { // item isn't in chrome.storage
+			callback(window.localStorage.getItem(cookieName)); // use local storage instead
+		} else { // item is in chrome.storage
+			callback(cookieValue);
+		}
+	});
 }
 	
-function setCookie(cookieName, cookieValue) { 
-	window.localStorage.setItem(cookieName, cookieValue);
+function setCookie(cookieName, cookieValue, callback) {
+	var json = {};
+	json[cookieName] = cookieValue;
+	chrome.storage.sync.set(json, callback);
 }
 
 // set default Bing Pong Helper options if cookies aren't set
-if (!getCookie("emulateHumanSearchingBehavior")) { 
-	setCookie("emulateHumanSearchingBehavior", "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED");
-}
+getCookie("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+	if (emulateHumanSearchingBehaviorCookieValue === null) { 
+		setCookie("emulateHumanSearchingBehavior", "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED");
+	}
+});
 
-if (!getCookie("useAlternateLogoutMethod")) { 
-	setCookie("useAlternateLogoutMethod", "USE_ALTERNATE_LOGOUT_METHOD.ENABLED");
-}
+getCookie("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
+	if (useAlternateLogoutMethodCookieValue === null) { 
+		setCookie("useAlternateLogoutMethod", "USE_ALTERNATE_LOGOUT_METHOD.ENABLED");
+	}
+});
 
-if (!getCookie("useAlternateLoginMethod")) { 
-	setCookie("useAlternateLoginMethod", "USE_ALTERNATE_LOGIN_METHOD.ENABLED"); 
-}
+getCookie("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
+	if (useAlternateLoginMethodCookieValue === null) { 
+		setCookie("useAlternateLoginMethod", "USE_ALTERNATE_LOGIN_METHOD.ENABLED"); 
+	}
+});
 
 function logIntoAccount() { 
-	if (getCookie("useAlternateLoginMethod") == "USE_ALTERNATE_LOGIN_METHOD.ENABLED") { 
-		openBrowserWindow("https://login.live.com", function (window, tab) {
-			loginWindow = window;
-			loginTab = tab;
-		});
-	} else {
-		// get the challenge solution from the log-in page, which will be passed onto Bing via the PPFT parameter
-		$.ajax({
-			url: 'https://login.live.com/ppsecure/post.srf?wa=wsignin1.0&wreply=http:%2F%2Fwww.bing.com%2FPassport.aspx%3Frequrl%3Dhttp%253a%252f%252fwww.bing.com%252frewards%252fdashboard',
-			type: 'GET',
-			cache: 'false',
-			success: function (data1) {
-				// log into Bing using the challenge solution obtained with the first AJAX request 
-				$.ajax({
-					url: 'https://login.live.com/ppsecure/post.srf?wa=wsignin1.0&wreply=http:%2F%2Fwww.bing.com%2FPassport.aspx%3Frequrl%3Dhttp%253a%252f%252fwww.bing.com%252frewards%252fdashboard',
-					type: 'POST',
-					cache: 'true',
-					data: {
-						'login' : username,
-						'passwd' : password,
-						'type' : '11',
-						'PPFT' : data1.substring(data1.indexOf("name=\"PPFT\" id=\"i0327\" value=\"") + 30, data1.indexOf("\"/>\'")),
-						'PPSX' : 'Passport'
-					},
-					success: function (data2) { 
-						// return to caller
-						globalResponse();
-					},
-					error: function (data2) { 
-						logIntoAccount();
-					}
-				});
-			},
-			error: function (data1) { 
-				logIntoAccount();
-			}
-		});
-	}
+	getCookie("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
+		if (useAlternateLoginMethodCookieValue === "USE_ALTERNATE_LOGIN_METHOD.ENABLED") { 
+			openBrowserWindow("https://login.live.com", function (window, tab) {
+				loginWindow = window;
+				loginTab = tab;
+			});
+		} else {
+			// get the challenge solution from the log-in page, which will be passed onto Bing via the PPFT parameter
+			$.ajax({
+				url: 'https://login.live.com/ppsecure/post.srf?wa=wsignin1.0&wreply=http:%2F%2Fwww.bing.com%2FPassport.aspx%3Frequrl%3Dhttp%253a%252f%252fwww.bing.com%252frewards%252fdashboard',
+				type: 'GET',
+				cache: 'false',
+				success: function (data1) {
+					// log into Bing using the challenge solution obtained with the first AJAX request 
+					$.ajax({
+						url: 'https://login.live.com/ppsecure/post.srf?wa=wsignin1.0&wreply=http:%2F%2Fwww.bing.com%2FPassport.aspx%3Frequrl%3Dhttp%253a%252f%252fwww.bing.com%252frewards%252fdashboard',
+						type: 'POST',
+						cache: 'true',
+						data: {
+							'login' : username,
+							'passwd' : password,
+							'type' : '11',
+							'PPFT' : data1.substring(data1.indexOf("name=\"PPFT\" id=\"i0327\" value=\"") + 30, data1.indexOf("\"/>\'")),
+							'PPSX' : 'Passport'
+						},
+						success: function (data2) { 
+							// return to caller
+							globalResponse();
+						},
+						error: function (data2) { 
+							logIntoAccount();
+						}
+					});
+				},
+				error: function (data1) { 
+					logIntoAccount();
+				}
+			});
+		}
+	});
 }
 
 function getUsernameCode() { 
@@ -355,19 +387,21 @@ function inputLoginDetails() {
 }
 
 function logoutOfAccount() { 
-	if (getCookie("useAlternateLogoutMethod") == "USE_ALTERNATE_LOGOUT_METHOD.ENABLED") {
-		// no need to worry about calling globalResponse --- deleteMicrosoftCookies does that for us
-		deleteMicrosoftCookies();
-	} else {
-		backgroundFrame.src = "https://login.live.com/logout.srf";
-		backgroundFrame.onload = function () {
-			// clear the onload handler
-				backgroundFrame.onload = function () {};
-					
-			// return to caller
-			setTimeout(globalResponse, LOGOUT_PAGE_LOAD_DELAY);
-		};
-	}
+	getCookie("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
+		if (useAlternateLogoutMethodCookieValue === "USE_ALTERNATE_LOGOUT_METHOD.ENABLED") {
+			// no need to worry about calling globalResponse --- deleteMicrosoftCookies does that for us
+			deleteMicrosoftCookies();
+		} else {
+			backgroundFrame.src = "https://login.live.com/logout.srf";
+			backgroundFrame.onload = function () {
+				// clear the onload handler
+					backgroundFrame.onload = function () {};
+						
+				// return to caller
+				setTimeout(globalResponse, LOGOUT_PAGE_LOAD_DELAY);
+			};
+		}
+	});
 }	
 
 function deleteMicrosoftCookies() {
@@ -418,17 +452,18 @@ function deleteMicrosoftCookies() {
 }
 	
 
-function performGETRequest(URL, responseIsJSON) { 
+function performGETRequest(URL, responseIsJSON, callback) { 
 	$.ajax({
       	url: URL,
       	type: 'GET',
 		dataType: (responseIsJSON ? 'json' : 'text'),
       	success: function (data) { 
       		// return to caller
-      		setTimeout(function () { globalResponse({contents: data}); }, 200);
+      		callback(data);
       	},
       	error: function (data) { 
-      		performGETRequest(URL);
+			// an error occurred, so try again
+      		performGETRequest(URL, responseIsJSON, callback);
       	}
     });
 }
@@ -457,37 +492,41 @@ function openOutlook() {
 }
 
 function performTasks(taskList) { 
+	var clickOnTask;
+	
 	// open the Bing Rewards dashboard in a new window
-	openBrowserWindow("https://bing.com/rewards/dashboard", function (window, tab) { 
-		dashboardWindow = window;
-		dashboardTab = tab;
-		
-		processNextTask = function () {
-			var taskURL = taskList.pop();
-			
-			// get the contents of emulation.js
-			$.ajax({
-				url: chrome.extension.getURL("scripts/emulation.js"),
-				type: 'GET',
-				dataType: 'text',
-				success: function (emulationCode) { 
-					// click on the the task on the dashboard that corresponds to this task's URL
-					chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + taskURL + "\", " + DASHBOARD_TASK_CLICK_DELAY + ", true);", runAt: "document_start"}, function (result) { 
-						setTimeout(function () { 
-							if (taskList.length > 0) {
-								chrome.tabs.update(tab.id, {url: "https://bing.com/rewards/dashboard"});
-								processNextTaskFlag = true;
+	openBrowserWindow("https://bing.com/rewards/dashboard", function (window, tab) { 	
+		onTabLoad(tab, function () { // dashboard tab loaded
+			setTimeout(function () { // wait the FIRST_TASK_ATTEMPT_DELAY before attempting the first task
+				// click on the first dashboard task
+				(clickOnTask = function (url) { 
+					// get the contents of scripts/emulation.js and use it
+					performGETRequest(chrome.extension.getURL("scripts/emulation.js"), false, function (emulationCode) {
+						// emulate a click on the corresponding dashboard task
+						chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + url + "\", " + DASHBOARD_TASK_CLICK_DELAY + ", true);", runAt: "document_start"}, function (result) {
+							// if there are any tasks left, do the next task after a delay
+							if (taskList.length > 0) { 
+								setTimeout(function () {
+									/** clicking on a dashboard task normally opens a tab with this url naturally
+										we don't want this to occur since this causes the new tab to steal focus
+										to work around this, clickOnLinkWithUrl() blocks the opening and we open it manually here
+									*/
+									chrome.tabs.create({windowId: window.id, index: 1, url: url}, function (tab) {
+										onTabLoad(tab, function () { // dashboard task loaded
+											chrome.tabs.update(tab.id, {muted: true}); // mute the tab (since some tasks have auto-playing videos)
+											setTimeout(clickOnTask(taskList.pop()), DASHBOARD_TASK_CLICK_DELAY); // work on the next task after a delay
+										});
+									});
+								}, DASHBOARD_TASK_CLICK_DELAY);
 							} else {
-								processNextTask = null;
-								dashboardWindow = null;
-								processNextTaskFlag = true;
+								// close the window and return control to Bing Pong
 								chrome.windows.remove(window.id, globalResponse);
 							}
-						}, TASK_TO_DASHBOARD_DELAY + DASHBOARD_TASK_CLICK_DELAY);
+						});
 					});
-				}
-			});
-		}
+				})(taskList.pop());
+			}, FIRST_TASK_ATTEMPT_DELAY);
+		});
 	});
 }
 		
@@ -609,18 +648,20 @@ function executeSearchCaptchaScript() {
 	
 	setTimeout(function () {
 		checkForSearchCaptcha(function (tabIsDead, captchaDetected) {
-			if (captchaDetected || tabIsDead || getCookie("emulateHumanSearchingBehavior") == "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") {
-				// prevent some searches from "loading" twice
-				if (globalResponse) { 
-					globalResponse({tabIsDead: tabIsDead, captchaDetected: captchaDetected});
-					globalResponse = null;
+			getCookie("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+				if (captchaDetected || tabIsDead || emulateHumanSearchingBehaviorCookieValue == "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") {
+					// prevent some searches from "loading" twice
+					if (globalResponse) { 
+						globalResponse({tabIsDead: tabIsDead, captchaDetected: captchaDetected});
+						globalResponse = null;
+					}
+				} else {
+					chrome.tabs.executeScript(searchTab.id, {code: "document.getElementsByTagName('html')[0].innerHTML;", runAt: "document_start"}, function (source) {
+						searchWindowContents = source;
+						emulateHumanSearchingBehavior();
+					});
 				}
-			} else {
-				chrome.tabs.executeScript(searchTab.id, {code: "document.getElementsByTagName('html')[0].innerHTML;", runAt: "document_start"}, function (source) {
-					searchWindowContents = source;
-					emulateHumanSearchingBehavior();
-				});
-			}
+			});
 		});
 	}, 200 + minDelay + (maxDelay - minDelay - 200)*Math.random());
 }
@@ -689,19 +730,6 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
 	return {requestHeaders: headers};
 }, {urls: ["<all_urls>"]}, ['requestHeaders', 'blocking']);
 
-/*
-chrome.webRequest.onBeforeRequest.addListener(function (details) { 
-	var goodDomains = ["bing.com", "bing.net", "live.com", "msn.com", "microsoft.com", chrome.runtime.id];
-	
-	// block requests in the searching tab that aren't from a "good website"
-	if (getCookie("emulateHumanSearchingBehavior") == "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED" && searchTab && details.tabId == searchTab.id && details.url.indexOf("bing.com") == -1 && details.url.indexOf("bing.net") == -1 && details.url.indexOf("live.com") == -1 && details.url.indexOf("msn.com") == -1 && details.url.indexOf("microsoft.com") == -1 && details.url.indexOf(chrome.runtime.id) == -1) { 
-		return {redirectUrl: chrome.extension.getURL("search_result_blocked.html")};
-	}
-	
-	return {cancel: false};
-}, {urls: ["<all_urls>"]}, ['blocking']);
-*/
-
 chrome.webRequest.onHeadersReceived.addListener(function (details) {
 	var headers = details.responseHeaders;
 	var urlOfRequest = details.url;
@@ -720,20 +748,6 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
 		chrome.pageAction.show(tabId);
 	}
 	
-	if (dashboardTab && tabId == dashboardTab.id && dashboardTab.url.indexOf("/dashboard") != -1 && changeInfo.status == "complete") {
-		if (processNextTask && processNextTaskFlag) { 
-			setTimeout(processNextTask, DASHBOARD_TASK_CLICK_DELAY);
-			processNextTaskFlag = false;
-		}
-	}
-	
-	// if processNextTask is not null, mute the dashboard window tab
-	if (processNextTask && dashboardWindow) { 
-		chrome.tabs.query({windowId: dashboardWindow.id}, function (dashboardTabsList) { 
-			chrome.tabs.update(dashboardTabsList[0].id, {muted: true});
-		});
-	}
-			
 	if (searchTab && tabId == searchTab.id && changeInfo.status == "complete") { 
 		if (searchTimeout) { 
 			executeSearchCaptchaScript();
@@ -755,12 +769,8 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 			bpWindow = window;
 			
 			chrome.contentSettings.location.clear({scope: "regular"}, function () { // workaround for Chrome bug
-				chrome.contentSettings.popups.clear({scope: "regular"}, function () {
-					chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
-						chrome.contentSettings.popups.set({primaryPattern: "*://*.bing.com/*", setting: "allow"}, function () {
-							globalResponse({bphVersion: chrome.app.getDetails().version});
-						});
-					});
+				chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
+					globalResponse({bphVersion: chrome.app.getDetails().version});
 				});
 			});
 		});
@@ -782,7 +792,7 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 		logoutLoads = 0;
 		logoutOfAccount();
 	} else if (message.action == "performGETRequest") { 
-		performGETRequest(message.ajaxURL, message.responseIsJSON);
+		performGETRequest(message.ajaxURL, message.responseIsJSON, globalResponse);
 	} else if (message.action == "openDashboardForVerifying") {
 		dashboardLoads = 0;
 		dashboardFunctionLoads = 1;
@@ -842,7 +852,9 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 			globalResponse({queries: queries});
 		});
 	} else if (message.action == "checkHumanBehavior") {
-		globalResponse({isEnabled: getCookie("emulateHumanSearchingBehavior") == "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED"});
+		getCookie("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+			globalResponse({isEnabled: emulateHumanSearchingBehaviorCookieValue == "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED"});
+		});
 	} else if (message.action == "getSearchWindowContents") { 
 		globalResponse({contents: searchWindowContents[0]});
 	} else {

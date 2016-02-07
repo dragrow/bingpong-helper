@@ -27,15 +27,15 @@ function mouseDownOnElement(el, callback) {
 	callback();
 }
 
-function clickOnLinkWithUrl(url, delay, resetTarget) { 
+function clickOnLinkWithUrl(url, delay, blockLoad) { 
 	var links = document.getElementsByTagName('a');
 	for (var i = 0; i < links.length; i++) { 
 		if (links[i].href == url) { 
 			mouseOverElement(links[i], function () { 
 				mouseDownOnElement(links[i], function () { 
 					setTimeout(function () { 
-						if (resetTarget) { 
-							links[i].target = "_self";
+						if (blockLoad) { 
+							links[i].href = "javascript:void(0);";
 						}
 						
 						clickOnElement(links[i]);

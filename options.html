@@ -1,64 +1,47 @@
 <html>
 	<head>
 		<title>Bing Pong Helper - Options</title>
-		<style type="text/css">
-			body					{ font-family: Verdana, Arial; font-size: 12px; margin: 0px; padding: 0px; text-align: center; color: #FAFAFA; background-color: #2B3E50;  }
-			input         				{ font-family: Verdana,Arial; font-size: 9pt; color: #000000; }
-			textarea      				{ font-family: Verdana,Arial; font-size: 9pt; color: #000000; }
-			select        				{ font-family: Verdana,Arial; font-size: 7pt; color: #000000; }
-			A:link					{ text-decoration: none; color: #FF9933; }
-			A:visited				{ text-decoration: none; color: #FF9933; }
-			A:hover					{ text-decoration: underline overline; color: #FF9933; }
-			td, th					{ font-size:12px; }
-			table:not(.optionsTable)				{ table-layout: fixed; }
-			td:not(.optionsTable)				{ width: 33%; vertical-align: top; }
-	 	</style>
 	</head>
 	
-<body>
-	<center>
+	<body style="min-width: 500px;">
+		<input type="checkbox" id="useAlternateLogoutMethod" checked>&nbsp;&nbsp;Delete Microsoft cookies to sign out of accounts
+		<br><input type="checkbox" id="useAlternateLoginMethod" checked>&nbsp;&nbsp;Use alternate sign-in method
+		<br><input type="checkbox" id="emulateHumanSearchingBehavior" checked>&nbsp;&nbsp;Emulate human searching behavior
+		<br><input type=checkbox id="autoRunOption">&nbsp;&nbsp;Automatically run Bing Pong daily at 
+		<select id="autoRunTime" disabled>
+			<option value="1">12 AM</option>
+			<option value="2">1 AM</option>
+			<option value="3" selected>2 AM</option>
+			<option value="4">3 AM</option>
+			<option value="5">4 AM</option>
+			<option value="6">5 AM</option>
+			<option value="7">6 AM</option>
+			<option value="8">7 AM</option>
+			<option value="9">8 AM</option>
+			<option value="10">9 AM</option>
+			<option value="11">10 AM</option>
+			<option value="12">11 AM</option>
+			<option value="13">12 PM</option>
+			<option value="14">1 PM</option>
+			<option value="15">2 PM</option>
+			<option value="16">3 PM</option>
+			<option value="17">4 PM</option>
+			<option value="18">5 PM</option>
+			<option value="19">6 PM</option>
+			<option value="20">7 PM</option>
+			<option value="21">8 PM</option>
+			<option value="22">9 PM</option>
+			<option value="23">10 PM</option>
+			<option value="24">11 PM</option>
+		</select>
 		<br>
-		<b>Options:</b>
-		<table class="optionsTable" cellspacing="0" cellpadding="0">
-			<tr class="optionsTable">
-				<td class="optionsTable">
-					<input type="checkbox" id="useAlternateLogoutMethod" checked>
-				</td>
-				<td class="optionsTable">
-					&nbsp;&nbsp;Delete Microsoft cookies to sign out of accounts
-				</td class="optionsTable">
-			</tr>
-			<tr class="optionsTable">
-				<td class="optionsTable">
-					<input type="checkbox" id="useAlternateLoginMethod" checked>
-				</td>
-				<td class="optionsTable">
-					&nbsp;&nbsp;Use alternate sign-in method
-				</td class="optionsTable">
-			</tr>
-			<tr class="optionsTable">
-				<td class="optionsTable">
-					<input type="checkbox" id="emulateHumanSearchingBehavior" checked>
-				</td>
-				<td class="optionsTable">
-					&nbsp;&nbsp;Emulate human searching behavior <b>(experimental)</b>
-				</td class="optionsTable">
-			</tr>
-		</table>
-		<!--
+		<br>Bing Pong Helper version: <b><span id="version"></span> (ALPHA)</b>
 		<br>
-		<button id="sync" disabled>Sync Bing Pong settings to Chrome</button>&nbsp;&nbsp;&nbsp;<button id="restore" disabled>Restore Bing Pong settings from Chrome</button> -->
+		<br>License status: <b><span id="licenseStatus">Loading...</span></b>
+		<center><br><span id="paymentOptions"></span></center>
 		<br>
-		These options and others are currently under development.
-		<br>
-		<br>
-		<span id="statusText"><b>Loading...</b></span>
-		<br>
-		<br>
-		<b>Created by <a href="http://www.reddit.com/user/kiefferbp" target="_blank">/u/kiefferbp</a>. v<span id="version"></span> (ALPHA)</b>
-</center>
-<script src="scripts/jquery.js"></script>
-<script src="scripts/buy.js"></script>
-<script src="scripts/options.js"></script>
-</body>
+		<script src="scripts/jquery.js"></script>
+		<script src="scripts/buy.js"></script>
+		<script src="scripts/options.js"></script>
+	</body>
 </html>
