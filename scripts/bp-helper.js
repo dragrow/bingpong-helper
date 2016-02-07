@@ -857,6 +857,8 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 		});
 	} else if (message.action == "getSearchWindowContents") { 
 		globalResponse({contents: searchWindowContents[0]});
+	} else if (message.action == "closeBPWindow") { 
+		chrome.windows.remove(bpWindow.id, globalResponse);
 	} else {
 		// more to come
 	}

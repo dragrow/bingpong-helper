@@ -16,7 +16,7 @@ function createAutoRunAlarm() {
 		
 		// set the alarm at the requested time with a period of 24 hours
 		chrome.alarms.create("bpAutoRun_notification", {when: nextRunTime - 1000*60*10, periodInMinutes: 24*60}); // notify the user 10 minutes in advance
-		chrome.alarms.create("bpAutoRun", {when: nextRunTime + 1000*60*10, periodInMinutes: 24*60});
+		chrome.alarms.create("bpAutoRun", {when: nextRunTime, periodInMinutes: 24*60});
 	});
 }
 
