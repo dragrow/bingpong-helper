@@ -697,12 +697,6 @@ function moveSearchCaptchaBack() {
 	});
 }
 
-function openBPHOptions() { 
-	chrome.tabs.create({url: chrome.extension.getURL("options.html"), active: true}, function (tab) { 
-		globalResponse();
-	});
-}
-
 function obtainWakelock() { 
 	chrome.power.requestKeepAwake("system");
 	globalResponse();
@@ -838,7 +832,7 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 	} else if (message.action == "closeDashboardForCaptcha") {
 		closeDashboardForCaptcha();
 	} else if (message.action == "openBPHOptions") { 
-		openBPHOptions();
+		chrome.runtime.openOptionsPage();
 	} else if (message.action == "obtainWakelock") { 
 		obtainWakelock();
 	} else if (message.action == "releaseWakelock") { 
