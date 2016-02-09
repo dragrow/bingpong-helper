@@ -759,7 +759,7 @@ chrome.webRequest.onHeadersReceived.addListener(function (details) {
 }, {urls: ["<all_urls>"]}, ['responseHeaders', 'blocking']);
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
-	if (tabs.url.indexOf("bing-pong.com") != -1 || tabs.url.indexOf("bingpong.net") != -1 || tabs.url.indexOf("bing.com") != -1 || tabs.url.indexOf("live.com") != -1 || tabs.url.indexOf("msn.com") != -1) { 
+	if (tab.url.indexOf("bing-pong.com") != -1 || tab.url.indexOf("bingpong.net") != -1 || tab.url.indexOf("bing.com") != -1 || tab.url.indexOf("live.com") != -1 || tab.url.indexOf("msn.com") != -1) { 
 		chrome.pageAction.show(tabId);
 	}
 	
