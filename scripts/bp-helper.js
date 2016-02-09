@@ -16,6 +16,7 @@ var DELAY_BEFORE_RETURNING_AFTER_SEARCHING = 8000;
 var DASHBOARD_TASK_CLICK_DELAY = 2000;
 var TASK_TO_DASHBOARD_DELAY = 6000;
 var FIRST_TASK_ATTEMPT_DELAY = 10000;
+var DASHBOARD_TASK_LOAD_TIME_LIMIT = 10000;
 
 var globalResponse, dashboardLoads, logoutLoads, dashboardWindow, dashboardTab, searchWindow, searchTab, loginWindow, loginTab, loginTimeout, dashboardFunctionLoads, bpWindow, captchaTab, minDelay, maxDelay, dashboardTimeout, searchTimeout;
 var username, password;
@@ -64,15 +65,25 @@ function checkExtensions() {
 }
 */
 
-function onTabLoad(tab, callback) { 
-	var listener;
+function onTabLoad(tab, callbackAfterDelay, callback) { 
+	var tabLoadlistener;
+	var tabLoadTimeout;
 	
-	chrome.tabs.onUpdated.addListener(listener = function (tabId, changeInfo, tabs) { 
+	chrome.tabs.onUpdated.addListener(listener = function (tabId, changeInfo, tab) { 
 		if (tabId === tab.id && changeInfo.status === "complete") { 
 			chrome.tabs.onUpdated.removeListener(listener);
+			clearTimeout(tabLoadTimeout);
 			callback();
 		}
 	});
+	
+	if (callbackAfterDelay.callbackAfterDelay) { // requested to call back if tab hasn't loaded in a reasonable period of time
+		tabLoadTimeout = setTimeout(function () { 
+			chrome.tabs.onUpdated.removeListener(listener);
+			callback();
+		}, callbackAfterDelay.delay);
+	}
+		
 }
 
 function getWikiArticles(callback) { 
@@ -495,33 +506,43 @@ function performTasks(taskList) {
 	var clickOnTask;
 	
 	// open the Bing Rewards dashboard in a new window
-	openBrowserWindow("https://bing.com/rewards/dashboard", function (window, tab) { 	
-		onTabLoad(tab, function () { // dashboard tab loaded
+	openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) { 	
+		onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_TASK_LOAD_TIME_LIMIT}, function () { // dashboard tab loaded
 			setTimeout(function () { // wait the FIRST_TASK_ATTEMPT_DELAY before attempting the first task
 				// click on the first dashboard task
 				(clickOnTask = function (url) { 
 					// get the contents of scripts/emulation.js and use it
 					performGETRequest(chrome.extension.getURL("scripts/emulation.js"), false, function (emulationCode) {
 						// emulate a click on the corresponding dashboard task
-						chrome.tabs.executeScript(tab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + url + "\", " + DASHBOARD_TASK_CLICK_DELAY + ", true);", runAt: "document_start"}, function (result) {
-							// if there are any tasks left, do the next task after a delay
-							if (taskList.length > 0) { 
-								setTimeout(function () {
-									/** clicking on a dashboard task normally opens a tab with this url naturally
-										we don't want this to occur since this causes the new tab to steal focus
-										to work around this, clickOnLinkWithUrl() blocks the opening and we open it manually here
-									*/
-									chrome.tabs.create({windowId: window.id, index: 1, url: url}, function (tab) {
-										onTabLoad(tab, function () { // dashboard task loaded
-											chrome.tabs.update(tab.id, {muted: true}); // mute the tab (since some tasks have auto-playing videos)
-											setTimeout(clickOnTask(taskList.pop()), DASHBOARD_TASK_CLICK_DELAY); // work on the next task after a delay
-										});
+						chrome.tabs.executeScript(dashboardTab.id, {code: emulationCode + "clickOnLinkWithUrl(\"" + url + "\", " + DASHBOARD_TASK_CLICK_DELAY + ", true);", runAt: "document_start"}, function (result) {
+							setTimeout(function () {
+								/** clicking on a dashboard task normally opens a tab with this url naturally
+									we don't want this to occur since this causes the new tab to steal focus
+									to work around this, clickOnLinkWithUrl() blocks the opening and we open it manually here
+								*/
+								chrome.tabs.create({windowId: dashboardWindow.id, index: 1, url: url}, function (taskTab) {
+									var listener; // for the chrome.tabs.onUpdated listener
+									
+									chrome.tabs.update(taskTab.id, {muted: true}); // mute the tab (since some tasks have auto-playing videos)
+									
+									chrome.tabs.onUpdated.addListener(listener = function (tabId, changeInfo, tab) { // listen for activity in the dashboard task tab
+										if (tabId === taskTab.id && (changeInfo.url.indexOf("bing.com") === -1 || changeInfo.url.indexOf("url=http") === -1) { // a non-Bing URL was found in the tab, or an attempt to use a non-HTTP/S protocol was detected
+											chrome.tabs.onUpdated.removeListener(listener);
+											chrome.tabs.update(taskTab.id, {url: "http://brian-kieffer.com/dashboard_task_blocked.php"}); // block it from loading
+										}
 									});
-								}, DASHBOARD_TASK_CLICK_DELAY);
-							} else {
-								// close the window and return control to Bing Pong
-								chrome.windows.remove(window.id, globalResponse);
-							}
+									
+									onTabLoad(taskTab, {callbackAfterDelay: true, delay: DASHBOARD_TASK_LOAD_TIME_LIMIT}, function () { // dashboard task loaded
+										setTimeout(function () { 
+											if (taskList.length > 0) { // if there are any tasks left, do the next task after a delay
+												clickOnTask(taskList.pop());
+											} else {
+												chrome.windows.remove(dashboardWindow.id, globalResponse);
+											}
+										}, DASHBOARD_TASK_CLICK_DELAY); // work on the next task after a delay
+									});
+								});
+							}, DASHBOARD_TASK_CLICK_DELAY);
 						});
 					});
 				})(taskList.pop());
@@ -737,7 +758,7 @@ chrome.webRequest.onHeadersReceived.addListener(function (details) {
 	return {responseHeaders: headers};
 }, {urls: ["<all_urls>"]}, ['responseHeaders', 'blocking']);
 
-chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tabs) {
+chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	if (tabs.url.indexOf("bing-pong.com") != -1 || tabs.url.indexOf("bingpong.net") != -1 || tabs.url.indexOf("bing.com") != -1 || tabs.url.indexOf("live.com") != -1 || tabs.url.indexOf("msn.com") != -1) { 
 		chrome.pageAction.show(tabId);
 	}
