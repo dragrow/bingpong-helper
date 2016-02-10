@@ -29,6 +29,7 @@ function mouseDownOnElement(el, callback) {
 
 function clickOnLinkWithUrl(url, delay, blockLoad) { 
 	var links = document.getElementsByTagName('a');
+	
 	for (var i = 0; i < links.length; i++) { 
 		if (links[i].href == url) { 
 			mouseOverElement(links[i], function () { 
