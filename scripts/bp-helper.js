@@ -17,6 +17,7 @@ var DASHBOARD_TASK_CLICK_DELAY = 2000;
 var TASK_TO_DASHBOARD_DELAY = 6000;
 var FIRST_TASK_ATTEMPT_DELAY = 10000;
 var DASHBOARD_TASK_LOAD_TIME_LIMIT = 10000;
+var LOGIN_PAGE_LOAD_TIME_LIMIT = 10000;
 
 var globalResponse, dashboardLoads, logoutLoads, dashboardWindow, dashboardTab, searchWindow, searchTab, loginWindow, loginTab, loginTimeout, dashboardFunctionLoads, bpWindow, captchaTab, minDelay, maxDelay, dashboardTimeout, searchTimeout;
 var username, password;
@@ -73,14 +74,14 @@ function onTabLoad(tab, callbackAfterDelay, callback) {
 		if (tabId === tab.id && changeInfo.status === "complete") { 
 			chrome.tabs.onUpdated.removeListener(listener);
 			clearTimeout(tabLoadTimeout);
-			callback();
+			callback(false);
 		}
 	});
 	
 	if (callbackAfterDelay.callbackAfterDelay) { // requested to call back if tab hasn't loaded in a reasonable period of time
 		tabLoadTimeout = setTimeout(function () { 
 			chrome.tabs.onUpdated.removeListener(listener);
-			callback();
+			callback(true);
 		}, callbackAfterDelay.delay);
 	}
 		
@@ -304,9 +305,12 @@ getCookie("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValu
 function logIntoAccount() { 
 	getCookie("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
 		if (useAlternateLoginMethodCookieValue === "USE_ALTERNATE_LOGIN_METHOD.ENABLED") { 
-			openBrowserWindow("https://login.live.com", function (window, tab) {
-				loginWindow = window;
-				loginTab = tab;
+			openBrowserWindow("https://login.live.com", function (loginWindow, loginTab) {
+				onTabLoad(loginTab, {callbackAfterDelay: true, delay: LOGIN_PAGE_LOAD_TIME_LIMIT}, function (tabLoadStalled) {
+					setTimeout(function () { 
+						inputLoginDetails(loginWindow, loginTab);
+					}, LOGIN_PAGE_LOAD_DELAY);
+				});
 			});
 		} else {
 			// get the challenge solution from the log-in page, which will be passed onto Bing via the PPFT parameter
@@ -356,7 +360,7 @@ function getPressLoginButtonCode() {
 	return "document.getElementById(\"idSIButton9\").click();";
 }
 
-function inputLoginDetails() { 
+function inputLoginDetails(loginWindow, loginTab) { 
 	var usernameTimeout, passwordTimeout, buttonClickTimeout;
 	
 	var inputUsername = function () {
@@ -553,19 +557,17 @@ function performTasks(taskList) {
 		
 function openDashboardForVerifying() {
 	// open the dashboard in a new window
-	openBrowserWindow("https://bing.com/rewards/dashboard", function (window, tab) {
-		dashboardWindow = window;
-		dashboardTab = tab;
-		dashboardTimeout = setTimeout(closeDashboardForVerifying, DASHBOARD_CLOSE_TIMEOUT);
+	openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) {
+		onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_CLOSE_TIMEOUT}, function (tabLoadStalled) {
+			onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_CLOSE_TIMEOUT}, function (tabLoadStalled) {
+				closeDashboardForVerifying(dashboardWindow);
+			});
+		});
 	});
 }
 
-function closeDashboardForVerifying() { 
-	if (dashboardWindow) { 
-		chrome.windows.remove(dashboardWindow.id);
-		dashboardWindow = null;
-	}		
-
+function closeDashboardForVerifying(dashboardWindow) { 
+	chrome.windows.remove(dashboardWindow.id);
 	globalResponse();		
 }
 
@@ -578,22 +580,16 @@ function openSearchWindow() {
 }
 
 function closeSearchWindow() { 
-	// temporary bsnd-aid
-	if (searchWindow) { 
-		chrome.windows.remove(searchWindow.id, function () {
-			searchTimeout = null;
-			searchWindow = null;
-			searchTab = null;
-			globalResponse();
-		});
-	} else {
-		globalResponse();
-	}
+	chrome.windows.remove(searchWindow.id);
+	globalResponse();
 }
 
 function performSearch(searchURL) { 
 	chrome.tabs.update(searchTab.id, {url: searchURL, active: false});
-	searchTimeout = setTimeout(executeSearchCaptchaScript, SEARCH_FINISH_TIMEOUT);
+	
+	onTabLoad(searchTab, {callbackAfterDelay: true, delay: SEARCH_FINISH_TIMEOUT}, function (tabLoadStalled) { 
+		executeSearchCaptchaScript();
+	});
 }
 
 function emulateHumanSearchingBehavior() { 
@@ -745,11 +741,12 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
 	return {requestHeaders: headers};
 }, {urls: ["<all_urls>"]}, ['requestHeaders', 'blocking']);
 
+/*
 chrome.webRequest.onHeadersReceived.addListener(function (details) {
 	var headers = details.responseHeaders;
 	var urlOfRequest = details.url;
 
-	if (dashboardWindow && urlOfRequest.indexOf("secure/Passport.aspx") != -1) { 
+	if (dashboardWindow && urlOfRequest === != "https://www.bing.com/rewardsapp/reportActivity") { 
 		clearTimeout(dashboardTimeout);
 		dashboardTimeout = null;
 		closeDashboardForVerifying();
@@ -757,20 +754,11 @@ chrome.webRequest.onHeadersReceived.addListener(function (details) {
 
 	return {responseHeaders: headers};
 }, {urls: ["<all_urls>"]}, ['responseHeaders', 'blocking']);
+*/
 
 chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
 	if (tab.url.indexOf("bing-pong.com") != -1 || tab.url.indexOf("bingpong.net") != -1 || tab.url.indexOf("bing.com") != -1 || tab.url.indexOf("live.com") != -1 || tab.url.indexOf("msn.com") != -1) { 
 		chrome.pageAction.show(tabId);
-	}
-	
-	if (searchTab && tabId == searchTab.id && changeInfo.status == "complete") { 
-		if (searchTimeout) { 
-			executeSearchCaptchaScript();
-		}
-	}
-	
-	if (loginTab && tabId == loginTab.id && changeInfo.status == "complete") { 
-		setTimeout(inputLoginDetails, LOGIN_PAGE_LOAD_DELAY);
 	}
 });
 
