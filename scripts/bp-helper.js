@@ -17,6 +17,8 @@ var DASHBOARD_TASK_CLICK_DELAY = 2000;
 var TASK_TO_DASHBOARD_DELAY = 6000;
 var FIRST_TASK_ATTEMPT_DELAY = 10000;
 var DASHBOARD_TASK_LOAD_TIME_LIMIT = 10000;
+var DASHBOARD_LOAD_LIMIT = 10000;
+var DASHBOARD_CLOSE_TIMEOUT = 10000;
 var LOGIN_PAGE_LOAD_TIME_LIMIT = 10000;
 
 var globalResponse, dashboardLoads, logoutLoads, dashboardWindow, dashboardTab, searchWindow, searchTab, loginWindow, loginTab, loginTimeout, dashboardFunctionLoads, bpWindow, captchaTab, minDelay, maxDelay, dashboardTimeout, searchTimeout;
@@ -554,9 +556,11 @@ function performTasks(taskList) {
 function openDashboardForVerifying() {
 	// open the dashboard in a new window
 	openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) {
-		onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_CLOSE_TIMEOUT}, function (tabLoadStalled) {
-			onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_CLOSE_TIMEOUT}, function (tabLoadStalled) {
-				closeDashboardForVerifying(dashboardWindow);
+		onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
+			onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
+				setTimeout(function () { 
+					closeDashboardForVerifying(dashboardWindow);
+				}, DASHBOARD_CLOSE_TIMEOUT);
 			});
 		});
 	});
