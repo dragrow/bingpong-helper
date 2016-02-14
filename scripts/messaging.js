@@ -2,20 +2,20 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 	if (message.action == "testBPH") { 
 		// make sure that the dashboard pop-ups only occur in the main BP window (less annoying)
 		chrome.windows.getCurrent(function (window) {
-			useMobileUA = 0;
+			useMobileUA = false;
 			bpWindow = window;
 			bpTab = sender.tab.id;
 			
 			chrome.contentSettings.location.clear({scope: "regular"}, function () { // workaround for Chrome bug
 				chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
-					globalResponse({bphVersion: chrome.app.getDetails().version});
+					sendResponse({bphVersion: chrome.app.getDetails().version});
 				});
 			});
 		});
 	} else if (message.action == "checkForLicense") { 
 		checkForLicense(sendResponse);
 	} else if (message.action == "logIntoAccount") { 
-		logIntoAccount(username, password, sendResponse);
+		logIntoAccount(message.username, message.password, sendResponse);
 	} else if (message.action == "logoutOfAccount") { 
 		logoutOfAccount(sendResponse);
 	} else if (message.action == "performGETRequest") { 

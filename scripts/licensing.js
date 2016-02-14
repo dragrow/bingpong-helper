@@ -123,3 +123,5 @@ function checkLicenseKey(callback) {
 		});
 	});
 }
+
+checkForLicense();
