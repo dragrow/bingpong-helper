@@ -1,3 +1,11 @@
+// constants
+var SEARCH_FINISH_TIMEOUT = 15000;
+var MINIMUM_DELAY_BEFORE_SCROLLING_DOWN = 500;
+var MAXIMUM_DELAY_BEFORE_SCROLLING_DOWN = 7000;
+var MINIMUM_DELAY_BEFORE_SCROLLING_UP = 500;
+var MAXIMUM_DELAY_BEFORE_SCROLLING_UP = 7000;
+var DELAY_BEFORE_RETURNING_AFTER_SEARCHING = 8000;
+
 function openSearchWindow(callback) { 
 	openBrowserWindow("https://google.com", function (window, tab) {
 		searchWindow = window;
@@ -90,14 +98,6 @@ function executeSearchCaptchaScript(callback) {
 		});
 	});
 }
-
-// constants
-var SEARCH_FINISH_TIMEOUT = 15000;
-var MINIMUM_DELAY_BEFORE_SCROLLING_DOWN = 500;
-var MAXIMUM_DELAY_BEFORE_SCROLLING_DOWN = 7000;
-var MINIMUM_DELAY_BEFORE_SCROLLING_UP = 500;
-var MAXIMUM_DELAY_BEFORE_SCROLLING_UP = 7000;
-var DELAY_BEFORE_RETURNING_AFTER_SEARCHING = 8000;
 
 function checkForSearchCaptcha(callback) {
 	// checks for tab crash. if a crash has occurred, return to caller
