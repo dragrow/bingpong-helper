@@ -112,7 +112,7 @@ function closeDashboardForCaptcha(callback) {
 
 function openOutlook(callback) {
 	chrome.tabs.create({url: "https://mail.live.com", active: true}, function (tab) { 
-		globalResponse(callback);
+		callback();
 	});
 }
 
