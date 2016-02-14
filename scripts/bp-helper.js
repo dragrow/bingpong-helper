@@ -554,9 +554,11 @@ function performTasks(taskList) {
 function openDashboardForVerifying() {
 	// open the dashboard in a new window
 	openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) {
-		setTimeout(function () { 
-			closeDashboardForVerifying(dashboardWindow);
-		}, LOGIN_PAGE_LOAD_TIME_LIMIT);
+		onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_CLOSE_TIMEOUT}, function (tabLoadStalled) {
+			onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_CLOSE_TIMEOUT}, function (tabLoadStalled) {
+				closeDashboardForVerifying(dashboardWindow);
+			});
+		});
 	});
 }
 
