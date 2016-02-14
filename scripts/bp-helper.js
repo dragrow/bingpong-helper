@@ -365,10 +365,6 @@ function inputLoginDetails(loginWindow, loginTab) {
 	
 	var inputUsername = function () {
 		chrome.tabs.executeScript(loginTab.id, {code: getUsernameCode(), runAt: "document_idle"}, function (input) {
-			if (chrome.runtime.lastError) {
-				return;
-			}
-			
 			clearTimeout(usernameTimeout);
 				
 			var inputPassword = function () {
