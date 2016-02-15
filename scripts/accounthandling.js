@@ -38,15 +38,15 @@ function logIntoAccount(username, password, callback) {
 						},
 						success: function (data2) { 
 							// return to caller
-							globalResponse();
+							callback();
 						},
 						error: function (data2) { 
-							logIntoAccount();
+							logIntoAccount(username, password, callback);
 						}
 					});
 				},
 				error: function (data1) { 
-					logIntoAccount();
+					logIntoAccount(username, password, callback);
 				}
 			});
 		}
