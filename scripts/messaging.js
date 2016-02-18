@@ -1,11 +1,11 @@
 chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResponse) {
 	if (message.action == "testBPH") { 
-		// make sure that the dashboard pop-ups only occur in the main BP window (less annoying)
-		chrome.windows.getCurrent(function (window) {
-			useMobileUA = false;
+		useMobileUA = false;
+		bpTab = sender.tab;
+		
+		chrome.windows.get(bpTab.windowId, function (window) { // get the window that contains Bing Pong
 			bpWindow = window;
-			bpTab = sender.tab.id;
-			
+		
 			chrome.contentSettings.location.clear({scope: "regular"}, function () { // workaround for Chrome bug
 				chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
 					sendResponse({bphVersion: chrome.app.getDetails().version});

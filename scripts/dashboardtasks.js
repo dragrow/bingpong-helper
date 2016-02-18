@@ -25,10 +25,8 @@ function performTasks(taskList, callback) {
 								chrome.tabs.create({windowId: dashboardWindow.id, index: 1, url: url}, function (taskTab) {
 									var listener; // for the chrome.tabs.onUpdated listener
 									
-									chrome.tabs.update(taskTab.id, {muted: true}); // mute the tab (since some tasks have auto-playing videos)
-									
 									chrome.tabs.onUpdated.addListener(listener = function (tabId, changeInfo, tab) { // listen for activity in the dashboard task tab
-										if (tabId === taskTab.id && (changeInfo.url.indexOf("bing.com") === -1 || changeInfo.url.indexOf("url=http") === -1)) { // a non-Bing URL was found in the tab, or an attempt to use a non-HTTP/S protocol was detected
+										if (tabId === taskTab.id && changeInfo.url.indexOf("bing.com") === -1) { // a non-Bing URL was found in the tab, or an attempt to use a non-HTTP/S protocol was detected
 											chrome.tabs.onUpdated.removeListener(listener);
 											chrome.tabs.update(taskTab.id, {url: "http://brian-kieffer.com/dashboard_task_blocked.php"}); // block it from loading
 										}
