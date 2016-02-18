@@ -1,7 +1,7 @@
 {
 	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApw35hEAJvKoU2HK873xBx4+fDsLyz8GQjfZQ2oG+0AHIq9ckgrN60grZtGYiN6KrWEd/MCOGYvoGBqN5CzrmSHdtYA3SDuWfQWmN8IOrXBUgyV1eBtDqKR/mDLsW7eV/Ebj8hO7MOGQvXtj13vw9s2gW67sLClSl6GzZmLn1ELOmC8WcMJkXv9IgAoHnuhvjC45c1k2naE8tXEY635XD0IvVEleWkBAKSWNiECwGQcIIDu88QRzBBmI1xms63Wuqv4MTU2kNJMhJe6qX5QbZQSxxCbcKXJU3hNDGcOFESM5zb7OaJMiQhqX6NDTILm/ZTVHOQTh5V5Arpq8F/oT5sQIDAQAB",
 	"name": "Bing Pong Helper",
-	"version": "1.6.0.0",
+	"version": "1.6.0.1",
 	"description": "Extends the abilities of Bing Pong",
 	"manifest_version": 2,
 	"page_action": {

@@ -57,8 +57,8 @@ function emulateMouseMovement(xFrom, yFrom, xTo, yTo, movementLength, movementDe
 				callback();
 				console.log('done moving mouse.');
 			} else {
-				newX = xFrom + percentComplete*(xTo - xFrom);
-				newY = yFrom + percentComplete*(yTo - yFrom);
+				newX = Math.round(xFrom + percentComplete*(xTo - xFrom));
+				newY = Math.round(yFrom + percentComplete*(yTo - yFrom));
 				setTimeout(movePointer, movementDelay);
 			}
 			
