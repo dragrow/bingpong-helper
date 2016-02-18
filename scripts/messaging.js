@@ -4,7 +4,7 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 		chrome.windows.getCurrent(function (window) {
 			useMobileUA = false;
 			bpWindow = window;
-			bpTab = sender.tab.id;
+			bpTab = sender.tab;
 			
 			chrome.contentSettings.location.clear({scope: "regular"}, function () { // workaround for Chrome bug
 				chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
