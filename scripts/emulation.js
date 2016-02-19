@@ -2,7 +2,7 @@ function clickOnElement(el) {
 	var r = el.getBoundingClientRect();
 	var evt = document.createEvent("MouseEvents");
 
-	evt.initMouseEvent('click', true, true, window, null, r.right, r.top, 0, 0, false, false, false, false, 0, null);
+	evt.initMouseEvent('click', true, true, window, null, r.right, r.top, r.right, r.top, false, false, false, false, 0, null);
 
 	el.dispatchEvent(evt);
 }
@@ -11,7 +11,7 @@ function mouseOverElement(el, callback) {
 	var r = el.getBoundingClientRect();
 	var evt = document.createEvent("MouseEvents");
 
-	evt.initMouseEvent('mouseover', true, true, window, null, r.right, r.top, 0, 0, false, false, false, false, 0, null);
+	evt.initMouseEvent('mouseover', true, true, window, null, r.right, r.top, r.right, r.top, false, false, false, false, 0, null);
 
 	el.dispatchEvent(evt);
 	callback();
@@ -72,7 +72,7 @@ function emulateMouseMovement(xFrom, yFrom, xTo, yTo, movementLength, movementDe
 			}
 			
 			console.log('moved to (' + newX + ', ' + newY + ').');
-			evt.initMouseEvent('mousemove', true, true, window, null, newX, newY, 0, 0, false, false, false, false, 0, null);
+			evt.initMouseEvent('mousemove', true, true, window, null, newX, newY, newX, 0, false, false, false, false, 0, null);
 			document.body.dispatchEvent(evt);
 		};
 		
