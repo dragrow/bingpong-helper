@@ -13,27 +13,27 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 			});
 		});
 	} else if (message.action == "checkForLicense") { 
-		checkForLicense(sendResponse);
+		bph.licensing.checkForLicense(sendResponse);
 	} else if (message.action == "logIntoAccount") { 
-		logIntoAccount(message.username, message.password, sendResponse);
+		bph.accountHandling.logIntoAccount(message.username, message.password, sendResponse);
 	} else if (message.action == "logoutOfAccount") { 
-		logoutOfAccount(sendResponse);
+		bph.accountHandling.logoutOfAccount(sendResponse);
 	} else if (message.action == "performGETRequest") { 
-		performGETRequest(message.ajaxURL, message.responseIsJSON, sendResponse);
+		bph.generalTools.performGETRequest(message.ajaxURL, message.responseIsJSON, sendResponse);
 	} else if (message.action == "openDashboardForVerifying") {
-		openDashboardForVerifying(sendResponse);
+		bph.generalTools.openDashboardForVerifying(sendResponse);
 	} else if (message.action == "openSearchWindow") { 
-		openSearchWindow(sendResponse);
+		bph.generalTools.openSearchWindow(sendResponse);
 	} else if (message.action == "closeSearchWindow") { 
-		closeSearchWindow(sendResponse);
+		bph.generalTools.closeSearchWindow(sendResponse);
 	} else if (message.action == "performSearch") { 
-		performSearch(message.searchURL, message.minDelay, message.maxDelay, sendResponse);
+		bph.searching.performSearch(message.searchURL, message.minDelay, message.maxDelay, sendResponse);
 	} else if (message.action == "performTasks") { 
-		performTasks(message.taskList, sendResponse);
+		bph.dashboardTasks.performTasks(message.taskList, sendResponse);
 	} else if (message.action == "openOutlook") { 
-		openOutlook(sendResponse);
+		bph.generalTools.openOutlook(sendResponse);
 	} else if (message.action == "openDashboard") { 
-		openDashboard(sendResponse);
+		bph.generalTools.openDashboard(sendResponse);
 	} else if (message.action == "enableMobileMode") { 
 		useMobileUA = true;
 		sendResponse();
@@ -43,37 +43,33 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 	} else if (message.action == "deleteMicrosoftCookies") {
 		deleteMicrosoftCookies(sendResponse);
 	} else if (message.action == "checkForSearchCaptcha") {
-		checkForSearchCaptcha(function (tabIsDead, captchaDetected) { 
+		bph.searching.checkForSearchCaptcha(function (tabIsDead, captchaDetected) { 
 			sendResponse({tabIsDead: tabIsDead, captchaDetected: captchaDetected});
 		});
 	} else if (message.action == "bringSearchCaptchaIntoFocus") {
-		bringSearchCaptchaIntoFocus(sendResponse);
+		bph.searching.bringSearchCaptchaIntoFocus(sendResponse);
 	} else if (message.action == "moveSearchCaptchaBack") {
-		moveSearchCaptchaBack(sendResponse);
+		bph.searching.moveSearchCaptchaBack(sendResponse);
 	} else if (message.action == "openDashboardForCaptcha") {
-		openDashboardForCaptcha(sendREsponse);
+		bph.generalTools.openDashboardForCaptcha(sendREsponse);
 	} else if (message.action == "closeDashboardForCaptcha") {
-		closeDashboardForCaptcha(sendResponse);
+		bph.generalTools.closeDashboardForCaptcha(sendResponse);
 	} else if (message.action == "openBPHOptions") { 
 		chrome.runtime.openOptionsPage();
 	} else if (message.action == "obtainWakelock") { 
-		obtainWakelock(sendResponse);
+		bph.generalTools.obtainWakelock(sendResponse);
 	} else if (message.action == "releaseWakelock") { 
-		releaseWakelock(sendResponse);
-	} else if (message.action == "getDictionaryWord") { 
-		getDictionaryWord(function (word) { 
-			sendResponse({word: word});
-		});
+		bph.generalTools.releaseWakelock(sendResponse);
 	} else if (message.action == "getWikiArticles") { 
-		getWikiArticles(function (queries) { 
+		bph.generalTools.getWikiArticles(function (queries) { 
 			sendResponse({queries: queries});
 		});
 	} else if (message.action == "checkHumanBehavior") {
-		getCookie("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+		bph.cookies.get("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
 			sendResponse({isEnabled: emulateHumanSearchingBehaviorCookieValue == "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED"});
 		});
 	} else if (message.action == "getSearchWindowContents") { 
-		sendResponse({contents: searchWindowContents[0]});
+		sendResponse({contents: bph.searching.getSearchWindowContents()});
 	} else if (message.action == "closeBPWindow") { 
 		chrome.windows.remove(bpWindow.id, sendResponse);
 	} else {
