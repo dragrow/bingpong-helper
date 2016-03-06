@@ -17,5 +17,5 @@ if (bph.humanEmulation) {
 		}
 	}
 } else {
-	throw "Exception: humanEmulation.js was not injected before calling bph.humanEmulation.*()";
+	throw "Exception: humanEmulation.js was not injected before using bph.humanEmulation.*";
 }

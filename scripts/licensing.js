@@ -14,16 +14,16 @@ bph.licensing = (function () {
 			}
 			
 			if (isLicensed) { // licensed via the Chrome web store
-				setCookie("isLicensed", isLicensed);
+				bph.cookies.set("isLicensed", isLicensed);
 				
 				if (callback) { 
 					callback(isLicensed);
 				}
 			} else { // not licensed via the Chrome web store
 				// check if the user has a license key
-				checkLicenseKey(function (licensedViaKey) { 
+				l.checkLicenseKey(function (licensedViaKey) { 
 					if (licensedViaKey) { 
-						setCookie("isLicensed", licensedViaKey);
+						bph.cookies.set("isLicensed", licensedViaKey);
 						
 						if (callback) { 
 							callback(licensedViaKey);
@@ -38,7 +38,7 @@ bph.licensing = (function () {
 								success: function (licensedViaIP) { 
 									isLicensed = (licensedViaIP === "true");
 									
-									setCookie("isLicensed", isLicensed);
+									bph.cookies.set("isLicensed", isLicensed);
 									
 									if (callback) { 
 										callback(isLicensed);
@@ -61,9 +61,9 @@ bph.licensing = (function () {
 			'success': updateLicenseStatus,
 			'failure': function () { // license check failed, but the user may have a key or his IP is whitelisted for a license
 				// check if the user has a license key
-				checkLicenseKey(function (licensedViaKey) { 
+				l.checkLicenseKey(function (licensedViaKey) { 
 					if (licensedViaKey) { 
-						setCookie("isLicensed", licensedViaKey);
+						bph.cookies.set("isLicensed", licensedViaKey);
 						
 						if (callback) { 
 							callback(licensedViaKey);
@@ -78,7 +78,7 @@ bph.licensing = (function () {
 								success: function (licensedViaIP) { 
 									isLicensed = (licensedViaIP === "true");
 									
-									setCookie("isLicensed", isLicensed);
+									bp.cookies.set("isLicensed", isLicensed);
 									
 									if (callback) { 
 										callback(isLicensed);
@@ -100,8 +100,8 @@ bph.licensing = (function () {
 	l.checkLicenseKey = function (callback) { 
 		var isLicensed = false;
 		
-		getCookie("username", function (usernameCookieValue) { 
-			getCookie("key", function (keyCookieValue) {
+		bp.cookies.get("username", function (usernameCookieValue) { 
+			bp.cookies.get("key", function (keyCookieValue) {
 				(checkKey = function () {
 					$.ajax({
 						url: 'http://brian-kieffer.com/keylicensecheck.php',
@@ -115,7 +115,7 @@ bph.licensing = (function () {
 						success: function (licensedViaKey) { 
 							isLicensed = (licensedViaKey.indexOf("true") != -1);
 
-							setCookie("isLicensed", isLicensed);
+							bp.cookies.set("isLicensed", isLicensed);
 							callback(isLicensed);
 						},
 						error: function () { 

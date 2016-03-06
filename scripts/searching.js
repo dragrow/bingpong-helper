@@ -1,4 +1,4 @@
-bp.searching = (function () { 
+bph.searching = (function () { 
 	// constants
 	var SEARCH_FINISH_TIMEOUT = 15000;
 	var MINIMUM_DELAY_BEFORE_SCROLLING_DOWN = 500;
@@ -139,6 +139,10 @@ bp.searching = (function () {
 	
 	s.getSearchWindowContents = function () { 
 		return _searchWindowContents;
+	}
+	
+	s.getSearchTab = function () { 
+		return _searchTab;
 	}
 	
 	return s;

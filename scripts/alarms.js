@@ -1,7 +1,7 @@
 bph.alarms = (function () { 
 	function createAutoRunAlarm() { 
 		// set an alarm that'll open Bing Pong at the required time
-		getCookie("autoRunTime", function (autoRunTimeCookieValue) { 
+		bph.cookies.get("autoRunTime", function (autoRunTimeCookieValue) { 
 			var date = new Date();
 			nextRunTime = date.getTime(); // start with the current time
 			nextRunTime	-= date.getMilliseconds();
@@ -50,11 +50,11 @@ bph.alarms = (function () {
 		if (changes["autoRunOption"]) { 
 			if (changes["autoRunOption"]["newValue"] === "AUTO_RUN.ENABLED") {
 				// note: this shouldn't conflict with the above alarms and listener, since they would be removed below
-				chrome.alarms.onAlarm.addListener(alarmListener);
+				chrome.alarms.onAlarm.addListener(_alarmListener);
 				chrome.alarms.clearAll(createAutoRunAlarm);
 			} else {
 				chrome.alarms.clearAll();
-				chrome.alarms.onAlarm.removeListener(alarmListener);
+				chrome.alarms.onAlarm.removeListener(_alarmListener);
 			}
 		}
 	});

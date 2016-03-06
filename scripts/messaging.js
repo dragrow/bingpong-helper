@@ -35,13 +35,13 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 	} else if (message.action == "openDashboard") { 
 		bph.generalTools.openDashboard(sendResponse);
 	} else if (message.action == "enableMobileMode") { 
-		useMobileUA = true;
+		bph.generalTools.enableMobileMode();
 		sendResponse();
 	} else if (message.action == "disableMobileMode") { 
-		useMobileUA = false;
+		bph.generalTools.disableMobileMode();
 		sendResponse();
 	} else if (message.action == "deleteMicrosoftCookies") {
-		deleteMicrosoftCookies(sendResponse);
+		bph.cookies.deleteMicrosoftCookies(sendResponse);
 	} else if (message.action == "checkForSearchCaptcha") {
 		bph.searching.checkForSearchCaptcha(function (tabIsDead, captchaDetected) { 
 			sendResponse({tabIsDead: tabIsDead, captchaDetected: captchaDetected});

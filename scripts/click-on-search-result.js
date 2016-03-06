@@ -94,5 +94,5 @@ if (bph.humanEmulation) {
 		});
 	}, MINIMUM_CLICK_TIME + (MAXIMUM_CLICK_TIME - MINIMUM_CLICK_TIME)*Math.random());
 } else {
-	throw "Exception: humanEmulation.js was not injected before calling bph.humanEmulation.*()";
+	throw "Exception: humanEmulation.js was not injected before using bph.humanEmulation.*";
 }

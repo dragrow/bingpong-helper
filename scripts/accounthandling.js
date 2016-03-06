@@ -9,10 +9,10 @@ bph.accountHandling = (function () {
 	var LOGIN_PAGE_LOAD_TIME_LIMIT = 10000;
 
 	function logIntoAccount(username, password, callback) { 
-		getCookie("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
+		bph.cookies.get("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
 			if (useAlternateLoginMethodCookieValue === "USE_ALTERNATE_LOGIN_METHOD.ENABLED") { 
-				openBrowserWindow("https://login.live.com", function (loginWindow, loginTab) {
-					onTabLoad(loginTab, {callbackAfterDelay: true, delay: LOGIN_PAGE_LOAD_TIME_LIMIT}, function (tabLoadStalled) {
+				bph.generalTools.openBrowserWindow("https://login.live.com", function (loginWindow, loginTab) {
+					bph.generalTools.onTabLoad(loginTab, {callbackAfterDelay: true, delay: LOGIN_PAGE_LOAD_TIME_LIMIT}, function (tabLoadStalled) {
 						setTimeout(function () { 
 							_inputLoginDetails(username, password, loginWindow, loginTab, callback);
 						}, LOGIN_PAGE_LOAD_DELAY);
@@ -104,12 +104,12 @@ bph.accountHandling = (function () {
 		
 		getCookie("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
 			if (useAlternateLogoutMethodCookieValue === "USE_ALTERNATE_LOGOUT_METHOD.ENABLED") {
-				deleteMicrosoftCookies(callback);
+				bph.cookies.deleteMicrosoftCookies(callback);
 			} else {
 				backgroundFrame.src = "https://login.live.com/logout.srf";
 				backgroundFrame.onload = function () {
 					// clear the onload handler
-						backgroundFrame.onload = function () {};
+					backgroundFrame.onload = function () {};
 							
 					// return to caller
 					setTimeout(callback, LOGOUT_PAGE_LOAD_DELAY);

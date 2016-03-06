@@ -1,21 +1,15 @@
 var bph = {};
 
-var bph.generalTools = (function () {
+bph.generalTools = (function () {
 	// constants
 	var DASHBOARD_LOAD_LIMIT = 10000;
 	var DASHBOARD_CLOSE_TIMEOUT = 10000;
 
-	// search window and tab
-	var searchWindow, searchTab;
-
-	// window and tab that contains Bing Pong
-	var bpWindow, bpTab;
-
 	// tab that contains a search or dashboard captcha
-	var captchaTab;
+	var _captchaTab;
 
 	// mobile user agent flag
-	var useMobileUA = false;
+	var _useMobileUA = false;
 	
 	var gt = {};
 
@@ -58,7 +52,7 @@ var bph.generalTools = (function () {
 				callback(queries);
 			},
 			error: function (data) { 
-				getWikiArticles(callback);
+				gt.getWikiArticles(callback);
 			}
 		});
 	}
@@ -93,7 +87,7 @@ var bph.generalTools = (function () {
 			},
 			error: function (data) { 
 				// an error occurred, so try again
-				performGETRequest(URL, responseIsJSON, callback);
+				gt.performGETRequest(URL, responseIsJSON, callback);
 			}
 		});
 	}
@@ -112,11 +106,11 @@ var bph.generalTools = (function () {
 	
 	gt.openDashboardForVerifying = function (callback) {
 		// open the dashboard in a new window
-		openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) {
-			onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
-				onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
+		gt.openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) {
+			gt.onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
+				gt.onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
 					setTimeout(function () { 
-						closeDashboardForVerifying(dashboardWindow, callback);
+						gt.closeDashboardForVerifying(dashboardWindow, callback);
 					}, DASHBOARD_CLOSE_TIMEOUT);
 				});
 			});
@@ -130,13 +124,13 @@ var bph.generalTools = (function () {
 
 	gt.openDashboardForCaptcha = function (callback) {
 		chrome.tabs.create({url: "https://www.bing.com/rewards/captcha", active: true}, function (tab) { 
-			captchaTab = tab;
+			_captchaTab = tab;
 			callback();
 		});
 	}
 
 	gt.closeDashboardForCaptcha = function (callback) {
-		chrome.tabs.remove(captchaTab.id, callback);
+		chrome.tabs.remove(_captchaTab.id, callback);
 	}
 
 	gt.obtainWakelock = function (callback) { 
@@ -149,22 +143,31 @@ var bph.generalTools = (function () {
 		callback();
 	}
 	
-	return gt;
-})();
-
-chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
-	var headers = details.requestHeaders;
-	
-	// check for the "mbp" keyword or if the useMobileUA flag is set, and emulate a mobile browser when found
-	if (details.url.indexOf("search?q=mbp") != -1 || (useMobileUA && searchTab && details.tabId == searchTab.id)) { 
-		// modify the user-agent string to emulate a mobile browser
-		for (var i = 0; i < headers.length; i++) {
-			if (headers[i].name == 'User-Agent') {
-				headers[i].value = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_2_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13D15 Safari/601.1';
-				break;
-			}
-		}
+	gt.enableMobileMode = function () { 
+		_useMobileUA = true;
 	}
 	
-	return {requestHeaders: headers};
-}, {urls: ["<all_urls>"]}, ['requestHeaders', 'blocking']);
+	gt.disableMobileMode = function () { 
+		_useMobileUA = false;
+	}
+	
+	chrome.webRequest.onBeforeSendHeaders.addListener(function (details) {
+		var headers = details.requestHeaders;
+		var searchTab = (bph.searching ? bph.searching.getSearchTab() : null);
+		
+		// check for the "mbp" keyword or if the useMobileUA flag is set, and emulate a mobile browser when found
+		if (details.url.indexOf("search?q=mbp") !== -1 || (_useMobileUA && searchTab && details.tabId === searchTab.id)) { 
+			// modify the user-agent string to emulate a mobile browser
+			for (var i = 0; i < headers.length; i++) {
+				if (headers[i].name == 'User-Agent') {
+					headers[i].value = 'Mozilla/5.0 (iPhone; CPU iPhone OS 9_2_1 like Mac OS X) AppleWebKit/601.1.46 (KHTML, like Gecko) Version/9.0 Mobile/13D15 Safari/601.1';
+					break;
+				}
+			}
+		}
+		
+		return {requestHeaders: headers};
+	}, {urls: ["<all_urls>"]}, ['requestHeaders', 'blocking']);
+	
+	return gt;
+})();

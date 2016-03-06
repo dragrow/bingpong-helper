@@ -9,13 +9,13 @@ bph.dashboardTasks = (function () {
 		var clickOnTask;
 		
 		// open the Bing Rewards dashboard in a new window
-		openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) { 	
-			onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_TASK_LOAD_TIME_LIMIT}, function () { // dashboard tab loaded
+		bph.generalTools.openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) { 	
+			bph.generalTools.onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_TASK_LOAD_TIME_LIMIT}, function () { // dashboard tab loaded
 				setTimeout(function () { // wait the FIRST_TASK_ATTEMPT_DELAY before attempting the first task
 					// click on the first dashboard task
 					(clickOnTask = function (url) { 
 						// get the contents of scripts/emulation.js and use it
-						performGETRequest(chrome.extension.getURL("scripts/humanemulation.js"), false, function (emulationCode) {
+						bph.generalTools.performGETRequest(chrome.extension.getURL("scripts/humanemulation.js"), false, function (emulationCode) {
 							// emulate a click on the corresponding dashboard task
 							chrome.tabs.executeScript(dashboardTab.id, {code: emulationCode + "bph.humanEmulation.clickOnLinkWithUrl(\"" + url + "\", " + DASHBOARD_TASK_CLICK_DELAY + ", true);", runAt: "document_start"}, function (result) {
 								setTimeout(function () {
@@ -33,7 +33,7 @@ bph.dashboardTasks = (function () {
 											}
 										});
 										
-										onTabLoad(taskTab, {callbackAfterDelay: true, delay: DASHBOARD_TASK_LOAD_TIME_LIMIT}, function () { // dashboard task loaded
+										bph.generalTools.onTabLoad(taskTab, {callbackAfterDelay: true, delay: DASHBOARD_TASK_LOAD_TIME_LIMIT}, function () { // dashboard task loaded
 											setTimeout(function () { 
 												if (taskList.length > 0) { // if there are any tasks left, do the next task after a delay
 													clickOnTask(taskList.pop());
