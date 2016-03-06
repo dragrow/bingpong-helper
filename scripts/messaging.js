@@ -25,7 +25,7 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 	} else if (message.action == "openSearchWindow") { 
 		bph.searching.openSearchWindow(sendResponse);
 	} else if (message.action == "closeSearchWindow") { 
-		bph.generalTools.closeSearchWindow(sendResponse);
+		bph.searching.closeSearchWindow(sendResponse);
 	} else if (message.action == "performSearch") { 
 		bph.searching.performSearch(message.searchURL, message.minDelay, message.maxDelay, sendResponse);
 	} else if (message.action == "performTasks") { 
