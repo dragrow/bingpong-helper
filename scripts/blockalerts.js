@@ -1,4 +1,4 @@
-var bph = (bph || {}); // this file is injected into tabs, so we need to redefine bp
+var bph = (bph || {}); // this file is injected into tabs, so we need to redefine bph
 
 bph.externalTools = (function () {
 	var et = {};

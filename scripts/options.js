@@ -1,29 +1,31 @@
-(function () { 	
-	function parseCookieInfo() { 
-		bp.cookies.get("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
+var bph = (bph || {}); // the options page is isolated from the other files, so we need to redefine bph
+
+bph.options = (function () { 	
+	function _parseCookieInfo() { 
+		bph.cookies.get("useAlternateLoginMethod", function (useAlternateLoginMethodCookieValue) { 
 			if (useAlternateLoginMethodCookieValue === "USE_ALTERNATE_LOGIN_METHOD.DISABLED") { 
 				document.getElementById('useAlternateLoginMethod').checked = false;
 			}
 		});
 		
-		bp.cookies.get("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
+		bph.cookies.get("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
 			if (useAlternateLogoutMethodCookieValue === "USE_ALTERNATE_LOGOUT_METHOD.DISABLED") {
 				document.getElementById('useAlternateLogoutMethod').checked = false;
 			}
 		});
 		
-		bp.cookies.get("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+		bph.cookies.get("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
 			if (emulateHumanSearchingBehaviorCookieValue === "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") { 
 				document.getElementById('emulateHumanSearchingBehavior').checked = false;
 			}
 		});
 		
-		bp.cookies.get("autoRunOption", function (autoRunOptionCookieValue) {	
+		bph.cookies.get("autoRunOption", function (autoRunOptionCookieValue) {	
 			if (autoRunOptionCookieValue === "AUTO_RUN.ENABLED") { 
 				document.getElementById('autoRunOption').checked = true;
 				document.getElementById('autoRunTime').disabled = false;
 				
-				bp.cookies.get("autoRunTime", function (autoRunTimeCookieValue) { 
+				bph.cookies.get("autoRunTime", function (autoRunTimeCookieValue) { 
 					document.getElementById('autoRunTime').selectedIndex = autoRunTimeCookieValue;
 				});
 			}
@@ -31,11 +33,11 @@
 	}
 		
 	function onSettingsChange() { 
-		bp.cookies.set("useAlternateLoginMethod", (document.getElementById('useAlternateLoginMethod').checked ? "USE_ALTERNATE_LOGIN_METHOD.ENABLED" : "USE_ALTERNATE_LOGIN_METHOD.DISABLED"));
-		bp.cookies.set("useAlternateLogoutMethod", (document.getElementById('useAlternateLogoutMethod').checked ? "USE_ALTERNATE_LOGOUT_METHOD.ENABLED" : "USE_ALTERNATE_LOGOUT_METHOD.DISABLED"));
-		bp.cookies.set("emulateHumanSearchingBehavior", (document.getElementById('emulateHumanSearchingBehavior').checked ? "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED" : "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED"));
-		bp.cookies.set("autoRunOption", (document.getElementById('autoRunOption').checked ? "AUTO_RUN.ENABLED" : "AUTO_RUN.DISABLED"));
-		bp.cookies.set("autoRunTime", document.getElementById('autoRunTime').selectedIndex);
+		bph.cookies.set("useAlternateLoginMethod", (document.getElementById('useAlternateLoginMethod').checked ? "USE_ALTERNATE_LOGIN_METHOD.ENABLED" : "USE_ALTERNATE_LOGIN_METHOD.DISABLED"));
+		bph.cookies.set("useAlternateLogoutMethod", (document.getElementById('useAlternateLogoutMethod').checked ? "USE_ALTERNATE_LOGOUT_METHOD.ENABLED" : "USE_ALTERNATE_LOGOUT_METHOD.DISABLED"));
+		bph.cookies.set("emulateHumanSearchingBehavior", (document.getElementById('emulateHumanSearchingBehavior').checked ? "EMULATE_HUMAN_SEARCH_BEHAVIOR.ENABLED" : "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED"));
+		bph.cookies.set("autoRunOption", (document.getElementById('autoRunOption').checked ? "AUTO_RUN.ENABLED" : "AUTO_RUN.DISABLED"));
+		bph.cookies.set("autoRunTime", document.getElementById('autoRunTime').selectedIndex);
 		
 		if (document.getElementById('autoRunOption').checked) {
 			// get "background" and "notifications" permissions
@@ -46,7 +48,7 @@
 					alert("We were unable to acquire the required permissions. Please try again later.");
 					document.getElementById('autoRunOption').checked = false;
 					document.getElementById('autoRunOption').disabled = true;
-					bp.cookies.set("autoRunOption", "AUTO_RUN.DISABLED");
+					bph.cookies.set("autoRunOption", "AUTO_RUN.DISABLED");
 				}
 			});
 		} else {
@@ -58,10 +60,11 @@
 		}
 	}
 
-	function checkForLicense(callback) { 
+	function _checkForLicense(callback) { 
 		var updateLicenseStatus = function (response) {
 			var purchasedItems = response.response.details;
 			var isLicensed = false;
+			var checkLicenseViaIP;
 			
 			for (var i = 0; i < purchasedItems.length; i++) { 
 				if (purchasedItems[i].sku == "bph_pro" && purchasedItems[i].state == "ACTIVE") { 
@@ -71,13 +74,13 @@
 			}
 			
 			if (isLicensed) { // licensed via the Chrome web store
-				bp.cookies.set("isLicensed", isLicensed);
-				updateLicenseDisplay(false, false);
+				bph.cookies.set("isLicensed", isLicensed);
+				_updateLicenseDisplay(false, false);
 			} else { // not licensed via the Chrome web store
 				// check if the user is licensed via their key
-				checkLicenseKey(function (licensedViaKey) {
+				_checkLicenseKey(function (licensedViaKey) {
 					if (licensedViaKey) { 
-						updateLicenseDisplay(true, false);
+						_updateLicenseDisplay(true, false);
 					} else {	
 						// as a final check, check if the user is licensed via their IP address
 						(checkLicenseViaIP = function () {
@@ -89,8 +92,8 @@
 								success: function (licensedViaIP) { 
 									isLicensed = (licensedViaIP === "true");
 									
-									bp.cookies.set("isLicensed", isLicensed);
-									updateLicenseDisplay(false, isLicensed);
+									bph.cookies.set("isLicensed", isLicensed);
+									_updateLicenseDisplay(false, isLicensed);
 								},
 								error: function (data) { 
 									checkLicenseViaIP();
@@ -105,15 +108,16 @@
 		google.payments.inapp.getPurchases({
 			'parameters': {'env': 'prod'},
 			'success': updateLicenseStatus,
-			'failure': getPurchasesFailed
+			'failure': _getPurchasesFailed
 		});
 	}
 
-	function checkLicenseKey(callback) { 
+	function _checkLicenseKey(callback) { 
 		var isLicensed = false;
+		var checkKey;
 		
-		bp.cookies.get("username", function (usernameCookieValue) { 
-			bp.cookies.get("key", function (keyCookieValue) { 
+		bph.cookies.get("username", function (usernameCookieValue) { 
+			bph.cookies.get("key", function (keyCookieValue) { 
 				(checkKey = function () {
 					$.ajax({
 						url: 'http://brian-kieffer.com/keylicensecheck.php',
@@ -127,7 +131,7 @@
 						success: function (licensedViaKey) { 
 							isLicensed = (licensedViaKey.indexOf("true") !== -1);
 
-							bp.cookies.set("isLicensed", isLicensed);
+							bph.cookies.set("isLicensed", isLicensed);
 							callback(isLicensed);
 						},
 						error: function () { 
@@ -140,19 +144,19 @@
 	}
 		
 
-	function updateLicenseDisplay(licensedViaKey, licensedViaIP) { 
+	function _updateLicenseDisplay(licensedViaKey, licensedViaIP) { 
 		var statusText = document.getElementById('licenseStatus');
 		var paymentOptions = document.getElementById('paymentOptions');
 		
 		paymentOptions.innerHTML = "";
-		bp.cookies.get("isLicensed", function (isLicensedCookieValue) {
+		bph.cookies.get("isLicensed", function (isLicensedCookieValue) {
 			if (isLicensedCookieValue) { 
 				statusText.innerHTML = "Licensed";
 				statusText.style.color = "#00FF00";
 				
 				if (licensedViaKey) { 
-					bp.cookies.get("username", function (usernameCookieValue) { 
-						bp.cookies.get("key", function (keyCookieValue) { 
+					bph.cookies.get("username", function (usernameCookieValue) { 
+						bph.cookies.get("key", function (keyCookieValue) { 
 							statusText.innerHTML += " (username: " + usernameCookieValue + ", key: " + keyCookieValue + ")";
 						});
 					});
@@ -162,7 +166,7 @@
 					statusText.innerHTML += " (via IP)";
 				}
 				
-				enableProFeatures();
+				_enableProFeatures();
 			} else {
 				statusText.innerHTML = "Unlicensed";
 				statusText.style.color = "#FF0000";
@@ -170,7 +174,7 @@
 				paymentOptions.innerHTML = "<button id=\"buyLicense\">Purchase license via Google Wallet ($9.99)</button>";
 				paymentOptions.innerHTML += "  <br><button id=\"alternatePaymentMethod\">Use alternate payment method</button>";
 				
-				document.getElementById('buyLicense').addEventListener('click', onBuyButtonClick);
+				document.getElementById('buyLicense').addEventListener('click', _onBuyButtonClick);
 				document.getElementById('alternatePaymentMethod').addEventListener('click', function () {
 					paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:brian@bing-pong.com\">brian@bing-pong.com</a> with your preferred choice of username and payment.";
 					paymentOptions.innerHTML += " Enter in your username and key below.";
@@ -180,28 +184,28 @@
 					paymentOptions.innerHTML += "<br><center><span id=\"keyCheckStatus\">&nbsp;</span></center>";
 					
 					document.getElementById('checkKey').addEventListener('click', function () { 
-						bp.cookies.set("username", document.getElementById('username').value);
-						bp.cookies.set("key", document.getElementById('key').value);
+						bph.cookies.set("username", document.getElementById('username').value);
+						bph.cookies.set("key", document.getElementById('key').value);
 					
-						checkLicenseKey(function (licensedViaKey) { 
+						_checkLicenseKey(function (licensedViaKey) { 
 							if (licensedViaKey) { 
-								updateLicenseDisplay(licensedViaKey, false);
+								_updateLicenseDisplay(licensedViaKey, false);
 							} else {
 								document.getElementById('keyCheckStatus').innerHTML = "<b>Invalid username/key combination.</b>";
 							}
 						});
 					});
 				
-					disableProFeatures();
+					_disableProFeatures();
 				});
 			}
 		});
 	}
 
-	function getPurchasesFailed() { // Google's license check failed, but the user's key or IP may give them a license	
-		checkLicenseKey(function (licensedViaKey) {
+	function _getPurchasesFailed() { // Google's license check failed, but the user's key or IP may give them a license	
+		_checkLicenseKey(function (licensedViaKey) {
 			if (licensedViaKey) { 
-				updateLicenseDisplay(licensedViaKey);
+				_updateLicenseDisplay(licensedViaKey);
 			} else {	
 				// as a final check, check if the user is licensed via their IP address
 				var checkLicenseViaIP = function () {
@@ -213,10 +217,10 @@
 						success: function (licensedViaIP) { 
 							isLicensed = (licensedViaIP === "true");
 							
-							bp.cookies.set("isLicensed", isLicensed);
+							bph.cookies.set("isLicensed", isLicensed);
 							
 							if (isLicensed) { 
-								updateLicenseDisplay(false, licensedViaKey);
+								_updateLicenseDisplay(false, licensedViaKey);
 							} else {
 								var statusText = document.getElementById('licenseStatus');
 								var paymentOptions = document.getElementById('paymentOptions');
@@ -227,7 +231,7 @@
 								paymentOptions.innerHTML = "<button id=\"buyLicense\" disabled>Google Wallet license check failed</button>";
 								paymentOptions.innerHTML += "  <br><button id=\"alternatePaymentMethod\">Use alternate payment method</button>";
 								
-								document.getElementById('buyLicense').addEventListener('click', onBuyButtonClick);
+								document.getElementById('buyLicense').addEventListener('click', _onBuyButtonClick);
 								document.getElementById('alternatePaymentMethod').addEventListener('click', function () {
 									paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:brian@bing-pong.com\">brian@bing-pong.com</a> with your preferred choice of username and payment.";
 									paymentOptions.innerHTML += " Enter in your username and key below.";
@@ -237,20 +241,20 @@
 									paymentOptions.innerHTML += "<br><center><span id=\"keyCheckStatus\">&nbsp;</span></center>";
 									
 									document.getElementById('checkKey').addEventListener('click', function () { 
-										bp.cookies.set("username", document.getElementById('username').value);
-										bp.cookies.set("key", document.getElementById('key').value);
+										bph.cookies.set("username", document.getElementById('username').value);
+										bph.cookies.set("key", document.getElementById('key').value);
 									
-										checkLicenseKey(function (licensedViaKey) { 
+										_checkLicenseKey(function (licensedViaKey) { 
 											if (licensedViaKey) { 
 												paymentOptions.innerHTML = "";
-												updateLicenseDisplay(licensedViaKey, isLicensed);
+												_updateLicenseDisplay(licensedViaKey, isLicensed);
 											} else {
 												document.getElementById('keyCheckStatus').innerHTML = "<b>Invalid username/key combination.</b>";
 											}
 										});
 									});
 								
-									disableProFeatures();
+									_disableProFeatures();
 								});
 							}
 						},
@@ -266,7 +270,7 @@
 	}
 		
 
-	function onBuyButtonClick() { 
+	function _onBuyButtonClick() { 
 		google.payments.inapp.buy({
 			'parameters': {'env': 'prod'},
 			'sku': 'bph_pro',
@@ -275,15 +279,15 @@
 		});
 	}
 
-	function onPurchase() { 
+	function _onPurchase() { 
 		checkForLicense();
 	}
 
-	function onPurchaseFail() { 
+	function _onPurchaseFail() { 
 		checkForLicense();
 	}
 
-	function disableProFeatures() {
+	function _disableProFeatures() {
 		// I want people to use the alternate sign-in method by default, and they can only use the legacy methods with a license
 		// document.getElementById('useAlternateLoginMethod').checked = true;
 		// document.getElementById('useAlternateLoginMethod').disabled = true;
@@ -292,27 +296,30 @@
 		// document.getElementById('emulateHumanSearchingBehavior').checked = false; --- for now, emulating human behavior does not need a license
 		// document.getElementById('emulateHumanSearchingBehavior').disabled = true;
 		
-		// bp.cookies.set("useAlternateLoginMethod", "USE_ALTERNATE_LOGIN_METHOD.ENABLED");
-		// bp.cookies.set("useAlternateLogoutMethod", "USE_ALTERNATE_LOGOUT_METHOD.ENABLED");
-		// bp.cookies.set("emulateHumanSearchingBehavior", "EMULATE_HUMAN_SEARCHING_BEHAVIOR.DISABLED");
+		// bph.cookies.set("useAlternateLoginMethod", "USE_ALTERNATE_LOGIN_METHOD.ENABLED");
+		// bph.cookies.set("useAlternateLogoutMethod", "USE_ALTERNATE_LOGOUT_METHOD.ENABLED");
+		// bph.cookies.set("emulateHumanSearchingBehavior", "EMULATE_HUMAN_SEARCHING_BEHAVIOR.DISABLED");
 	}
 
-	function enableProFeatures() {
+	function _enableProFeatures() {
 		// document.getElementById('emulateHumanSearchingBehavior').disabled = false; --- this is already enabled
 		// document.getElementById('useAlternateLoginMethod').disabled = false;
 		// document.getElementById('useAlternateLogoutMethod').disabled = false;
 	}
-
-	document.getElementById('useAlternateLoginMethod').addEventListener('click', onSettingsChange);
-	document.getElementById('useAlternateLogoutMethod').addEventListener('click', onSettingsChange);
-	document.getElementById('emulateHumanSearchingBehavior').addEventListener('click', onSettingsChange);
-	document.getElementById('autoRunOption').addEventListener('click', onSettingsChange);
-	document.getElementById('autoRunTime').addEventListener('click', onSettingsChange);
-
-	document.getElementById('version').innerHTML = chrome.app.getDetails().version;
-
-	parseCookieInfo();
-	checkForLicense();
 	
-	return {}; // for closure
+	// do an initial cookie and license check
+	_parseCookieInfo();
+	_checkForLicense();
+	
+	return {
+		onSettingsChange: onSettingsChange
+	};
 })();
+
+document.getElementById('useAlternateLoginMethod').addEventListener('click', bph.options.onSettingsChange);
+document.getElementById('useAlternateLogoutMethod').addEventListener('click', bph.options.onSettingsChange);
+document.getElementById('emulateHumanSearchingBehavior').addEventListener('click', bph.options.onSettingsChange);
+document.getElementById('autoRunOption').addEventListener('click', bph.options.onSettingsChange);
+document.getElementById('autoRunTime').addEventListener('click', bph.options.onSettingsChange);
+
+document.getElementById('version').innerHTML = chrome.app.getDetails().version;
