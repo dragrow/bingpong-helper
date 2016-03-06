@@ -23,7 +23,7 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 	} else if (message.action == "openDashboardForVerifying") {
 		bph.generalTools.openDashboardForVerifying(sendResponse);
 	} else if (message.action == "openSearchWindow") { 
-		bph.generalTools.openSearchWindow(sendResponse);
+		bph.searching.openSearchWindow(sendResponse);
 	} else if (message.action == "closeSearchWindow") { 
 		bph.generalTools.closeSearchWindow(sendResponse);
 	} else if (message.action == "performSearch") { 

@@ -78,7 +78,7 @@ bph.licensing = (function () {
 								success: function (licensedViaIP) { 
 									isLicensed = (licensedViaIP === "true");
 									
-									bp.cookies.set("isLicensed", isLicensed);
+									bph.cookies.set("isLicensed", isLicensed);
 									
 									if (callback) { 
 										callback(isLicensed);
@@ -100,8 +100,8 @@ bph.licensing = (function () {
 	l.checkLicenseKey = function (callback) { 
 		var isLicensed = false;
 		
-		bp.cookies.get("username", function (usernameCookieValue) { 
-			bp.cookies.get("key", function (keyCookieValue) {
+		bph.cookies.get("username", function (usernameCookieValue) { 
+			bph.cookies.get("key", function (keyCookieValue) {
 				(checkKey = function () {
 					$.ajax({
 						url: 'http://brian-kieffer.com/keylicensecheck.php',
@@ -115,7 +115,7 @@ bph.licensing = (function () {
 						success: function (licensedViaKey) { 
 							isLicensed = (licensedViaKey.indexOf("true") != -1);
 
-							bp.cookies.set("isLicensed", isLicensed);
+							bph.cookies.set("isLicensed", isLicensed);
 							callback(isLicensed);
 						},
 						error: function () { 

@@ -39,7 +39,7 @@ bph.alarms = (function () {
 	}
 
 	// check for the auto-run option on extension load, and set the alarms and listener if found
-	getCookie("autoRunOption", function (autoRunOptionCookieValue) { 
+	bph.cookies.get("autoRunOption", function (autoRunOptionCookieValue) { 
 		if (autoRunOptionCookieValue === "AUTO_RUN.ENABLED") { 
 			chrome.alarms.onAlarm.addListener(alarmListener);
 			chrome.alarms.clearAll(createAutoRunAlarm);

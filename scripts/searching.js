@@ -17,6 +17,7 @@ bph.searching = (function () {
 		bph.generalTools.openBrowserWindow("https://google.com", function (window, tab) {
 			_searchWindow = window;
 			_searchTab = tab;
+			alert('opened search tab with id: ' + _searchTab.id);
 			callback();
 		});	
 	}
@@ -72,14 +73,18 @@ bph.searching = (function () {
 				if (randomNumber < 0.15) { 
 					// scroll to the bottom
 					chrome.tabs.executeScript(_searchTab.id, {code: "window.scroll(0, 9999);", runAt: "document_start"}, function (result) {
-						chrome.tabs.executeScript(_searchTab.id, {file: "scripts/click-on-next-page-arrow.js", runAt: "document_start"}, function (result) {
-							setTimeout(callback, DELAY_BEFORE_RETURNING_AFTER_SEARCHING);
+						chrome.tabs.executeScript(_searchTab.id, {file: "scripts/humanemulation.js", runAt: "document_start"}, function (result) {
+							chrome.tabs.executeScript(_searchTab.id, {file: "scripts/click-on-next-page-arrow.js", runAt: "document_start"}, function (result) {
+								setTimeout(callback, DELAY_BEFORE_RETURNING_AFTER_SEARCHING);
+							});
 						});
 					});
 				} else if (randomNumber > 0.15 && randomNumber < 0.90) { // click on a result with 75% probability
 					chrome.tabs.executeScript(_searchTab.id, {file: "scripts/jquery.js", runAt: "document_start"}, function (result) { 
-						chrome.tabs.executeScript(_searchTab.id, {file: "scripts/click-on-search-result.js", runAt: "document_start"}, function (result) {
-							setTimeout(callback, DELAY_BEFORE_RETURNING_AFTER_SEARCHING);
+						chrome.tabs.executeScript(_searchTab.id, {file: "scripts/humanemulation.js", runAt: "document_start"}, function (result) {
+							chrome.tabs.executeScript(_searchTab.id, {file: "scripts/click-on-search-result.js", runAt: "document_start"}, function (result) {
+								setTimeout(callback, DELAY_BEFORE_RETURNING_AFTER_SEARCHING);
+							});
 						});
 					});
 				} else { // do nothing with 10% probability
@@ -92,8 +97,8 @@ bph.searching = (function () {
 	}
 
 	function _executeSearchCaptchaScript(callback) { 
-		checkForSearchCaptcha(function (tabIsDead, captchaDetected) {
-			getCookie("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
+		s.checkForSearchCaptcha(function (tabIsDead, captchaDetected) {
+			bph.cookies.get("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
 				if (captchaDetected || tabIsDead || emulateHumanSearchingBehaviorCookieValue == "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") {
 					callback({tabIsDead: tabIsDead, captchaDetected: captchaDetected});
 				} else {

@@ -102,7 +102,7 @@ bph.accountHandling = (function () {
 	function logoutOfAccount(callback) { 
 		var backgroundFrame = document.getElementById('backgroundFrame');
 		
-		getCookie("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
+		bph.cookies.get("useAlternateLogoutMethod", function (useAlternateLogoutMethodCookieValue) { 
 			if (useAlternateLogoutMethodCookieValue === "USE_ALTERNATE_LOGOUT_METHOD.ENABLED") {
 				bph.cookies.deleteMicrosoftCookies(callback);
 			} else {
