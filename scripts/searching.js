@@ -17,7 +17,6 @@ bph.searching = (function () {
 		bph.generalTools.openBrowserWindow("https://google.com", function (window, tab) {
 			_searchWindow = window;
 			_searchTab = tab;
-			alert('opened search tab with id: ' + _searchTab.id);
 			callback();
 		});	
 	}
