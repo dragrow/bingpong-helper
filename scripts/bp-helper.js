@@ -104,7 +104,11 @@ bph.generalTools = (function () {
 	
 	generalTools.openDashboardForVerifying = function (callback) {
 		// open the dashboard in a new window
+		bph.generalTools.openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) {
+			bph.generalTools.onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
+				bph.generalTools.onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
 					setTimeout(function () { 
+						bph.generalTools.closeDashboardForVerifying(dashboardWindow, callback);
 					}, DASHBOARD_CLOSE_TIMEOUT);
 				});
 			});
