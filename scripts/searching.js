@@ -149,5 +149,5 @@ bph.searching = (function () {
 		return _searchTab;
 	}
 	
-	return s;
+	return searching;
 })();
