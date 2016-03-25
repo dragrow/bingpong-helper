@@ -11,9 +11,9 @@ bph.searching = (function () {
 	var _searchWindow;
 	var _searchTab;
 	
-	var s = {};
+	var searching = {};
 
-	s.openSearchWindow = function (callback) { 
+	searching.openSearchWindow = function (callback) { 
 		bph.generalTools.openBrowserWindow("https://google.com", function (window, tab) {
 			_searchWindow = window;
 			_searchTab = tab;
@@ -21,12 +21,12 @@ bph.searching = (function () {
 		});	
 	}
 
-	s.closeSearchWindow = function (callback) { 
+	searching.closeSearchWindow = function (callback) { 
 		chrome.windows.remove(_searchWindow.id);
 		callback();
 	}
 
-	s.performSearch = function (searchURL, minDelay, maxDelay, callback) { 
+	searching.performSearch = function (searchURL, minDelay, maxDelay, callback) { 
 		chrome.tabs.update(_searchTab.id, {url: searchURL, active: false});
 		
 		bph.generalTools.onTabLoad(_searchTab, {callbackAfterDelay: true, delay: SEARCH_FINISH_TIMEOUT}, function (tabLoadStalled) { 
@@ -96,7 +96,7 @@ bph.searching = (function () {
 	}
 
 	function _executeSearchCaptchaScript(callback) { 
-		s.checkForSearchCaptcha(function (tabIsDead, captchaDetected) {
+		bph.searching.checkForSearchCaptcha(function (tabIsDead, captchaDetected) {
 			bph.cookies.get("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
 				if (captchaDetected || tabIsDead || emulateHumanSearchingBehaviorCookieValue == "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") {
 					callback({tabIsDead: tabIsDead, captchaDetected: captchaDetected});
@@ -110,7 +110,7 @@ bph.searching = (function () {
 		});
 	}
 
-	s.checkForSearchCaptcha = function (callback) {
+	searching.checkForSearchCaptcha = function (callback) {
 		// checks for tab crash. if a crash has occurred, return to caller
 		var tabCrashTimeout = setTimeout(function () {
 			callback(true, false);
@@ -122,7 +122,7 @@ bph.searching = (function () {
 		});
 	}
 
-	s.bringSearchCaptchaIntoFocus = function (callback) {
+	searching.bringSearchCaptchaIntoFocus = function (callback) {
 		// open up the new tab page in the search window to keep it from closing when the search tab changes windows
 		chrome.tabs.create({windowId: _searchWindow.id}, function (tab) { 
 			// move the search tab to the BP window so that it can be noticed
@@ -135,17 +135,17 @@ bph.searching = (function () {
 		});
 	}
 
-	s.moveSearchCaptchaBack = function (callback) {
+	searching.moveSearchCaptchaBack = function (callback) {
 		chrome.tabs.move(_searchTab.id, {windowId: _searchWindow.id, index: -1}, function (tabs) {
 			callback();
 		});
 	}
 	
-	s.getSearchWindowContents = function () { 
+	searching.getSearchWindowContents = function () { 
 		return _searchWindowContents;
 	}
 	
-	s.getSearchTab = function () { 
+	searching.getSearchTab = function () { 
 		return _searchTab;
 	}
 	

@@ -1,9 +1,9 @@
 var bph = (bph || {}); // this file is injected into tabs, so we need to redefine bph
 
 bph.humanEmulation = (function () { 
-	var he = {};
+	var humanEmulation = {};
 	
-	he.clickOnElement = function (el) { 
+	humanEmulation.clickOnElement = function (el) { 
 		var r = el.getBoundingClientRect();
 		var evt = document.createEvent("MouseEvents");
 
@@ -12,7 +12,7 @@ bph.humanEmulation = (function () {
 		el.dispatchEvent(evt);
 	}
 
-	he.mouseOverElement = function (el, callback) { 
+	humanEmulation.mouseOverElement = function (el, callback) { 
 		var r = el.getBoundingClientRect();
 		var evt = document.createEvent("MouseEvents");
 
@@ -22,7 +22,7 @@ bph.humanEmulation = (function () {
 		callback();
 	}
 
-	he.mouseDownOnElement = function (el, callback) {
+	humanEmulation.mouseDownOnElement = function (el, callback) {
 		var r = el.getBoundingClientRect();
 		var evt = document.createEvent("MouseEvents");
 
@@ -32,7 +32,7 @@ bph.humanEmulation = (function () {
 		callback();
 	}
 
-	he.clickOnLinkWithUrl = function (url, delay, blockLoad) { 
+	humanEmulation.clickOnLinkWithUrl = function (url, delay, blockLoad) { 
 		var links = document.getElementsByTagName('a');
 		
 		for (var i = 0; i < links.length; i++) { 
@@ -53,7 +53,7 @@ bph.humanEmulation = (function () {
 		}
 	}
 
-	he.emulateMouseMovement = function (xFrom, yFrom, xTo, yTo, movementLength, movementDelay, callback) {
+	humanEmulation.emulateMouseMovement = function (xFrom, yFrom, xTo, yTo, movementLength, movementDelay, callback) {
 		if ((xFrom == xTo && yFrom == yTo) || movementLength < movementDelay) { 
 			callback();
 		} else {
@@ -85,5 +85,5 @@ bph.humanEmulation = (function () {
 		}
 	}
 	
-	return he;
+	return humanEmulation;
 })();

@@ -11,9 +11,9 @@ bph.generalTools = (function () {
 	// mobile user agent flag
 	var _useMobileUA = false;
 	
-	var gt = {};
+	var generalTools = {};
 
-	gt.onTabLoad = function (tab, callbackAfterDelay, callback) { 
+	generalTools.onTabLoad = function (tab, callbackAfterDelay, callback) { 
 		var tabLoadlistener;
 		var tabLoadTimeout;
 		
@@ -34,7 +34,7 @@ bph.generalTools = (function () {
 			
 	}
 
-	gt.getWikiArticles = function (callback) { 
+	generalTools.getWikiArticles = function (callback) { 
 		$.ajax({
 			url: "https://en.wikipedia.org/w/api.php?format=json&action=query&list=random&rnlimit=10&rnnamespace=0",
 			json: true,
@@ -52,12 +52,11 @@ bph.generalTools = (function () {
 				callback(queries);
 			},
 			error: function (data) { 
-				gt.getWikiArticles(callback);
 			}
 		});
 	}
 
-	gt.openBrowserWindow = function (url, callback) { 
+	generalTools.openBrowserWindow = function (url, callback) { 
 		// obtain the integer part of the Chrome version
 		// the method of doing it was obtained from this link: http://stackoverflow.com/questions/4900436/detect-version-of-chrome-installed
 		var chromeVersion = parseInt((navigator.userAgent.match(/Chrom(e|ium)\/([0-9]+)\./))[2], 10);
@@ -76,7 +75,7 @@ bph.generalTools = (function () {
 		}	
 	}
 
-	gt.performGETRequest = function (URL, responseIsJSON, callback) { 
+	generalTools.performGETRequest = function (URL, responseIsJSON, callback) { 
 		$.ajax({
 			url: URL,
 			type: 'GET',
@@ -87,67 +86,62 @@ bph.generalTools = (function () {
 			},
 			error: function (data) { 
 				// an error occurred, so try again
-				gt.performGETRequest(URL, responseIsJSON, callback);
 			}
 		});
 	}
 
-	gt.openDashboard = function (callback) { 
+	generalTools.openDashboard = function (callback) { 
 		chrome.tabs.create({url: "https://www.bing.com/rewards/dashboard", active: true}, function (tab) { 
 			callback();
 		});
 	}
 	
-	gt.openOutlook = function (callback) {
+	generalTools.openOutlook = function (callback) {
 		chrome.tabs.create({url: "https://mail.live.com", active: true}, function (tab) { 
 			callback();
 		});
 	}
 	
-	gt.openDashboardForVerifying = function (callback) {
+	generalTools.openDashboardForVerifying = function (callback) {
 		// open the dashboard in a new window
-		gt.openBrowserWindow("https://bing.com/rewards/dashboard", function (dashboardWindow, dashboardTab) {
-			gt.onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
-				gt.onTabLoad(dashboardTab, {callbackAfterDelay: true, delay: DASHBOARD_LOAD_LIMIT}, function (tabLoadStalled) {
 					setTimeout(function () { 
-						gt.closeDashboardForVerifying(dashboardWindow, callback);
 					}, DASHBOARD_CLOSE_TIMEOUT);
 				});
 			});
 		});
 	}
 
-	gt.closeDashboardForVerifying = function (dashboardWindow, callback) { 
+	generalTools.closeDashboardForVerifying = function (dashboardWindow, callback) { 
 		chrome.windows.remove(dashboardWindow.id);
 		callback();		
 	}
 
-	gt.openDashboardForCaptcha = function (callback) {
+	generalTools.openDashboardForCaptcha = function (callback) {
 		chrome.tabs.create({url: "https://www.bing.com/rewards/captcha", active: true}, function (tab) { 
 			_captchaTab = tab;
 			callback();
 		});
 	}
 
-	gt.closeDashboardForCaptcha = function (callback) {
+	generalTools.closeDashboardForCaptcha = function (callback) {
 		chrome.tabs.remove(_captchaTab.id, callback);
 	}
 
-	gt.obtainWakelock = function (callback) { 
+	generalTools.obtainWakelock = function (callback) { 
 		chrome.power.requestKeepAwake("system");
 		callback();
 	}
 
-	gt.releaseWakelock = function (callback) { 
+	generalTools.releaseWakelock = function (callback) { 
 		chrome.power.releaseKeepAwake();
 		callback();
 	}
 	
-	gt.enableMobileMode = function () { 
+	generalTools.enableMobileMode = function () { 
 		_useMobileUA = true;
 	}
 	
-	gt.disableMobileMode = function () { 
+	generalTools.disableMobileMode = function () { 
 		_useMobileUA = false;
 	}
 	
@@ -169,5 +163,5 @@ bph.generalTools = (function () {
 		return {requestHeaders: headers};
 	}, {urls: ["<all_urls>"]}, ['requestHeaders', 'blocking']);
 	
-	return gt;
+	return generalTools;
 })();

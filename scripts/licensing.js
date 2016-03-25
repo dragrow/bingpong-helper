@@ -1,7 +1,7 @@
 bph.licensing = (function () { 
-	var l = {};
+	var licensing = {};
 	
-	l.checkForLicense = function (callback) { 
+	licensing.checkForLicense = function (callback) { 
 		var updateLicenseStatus = function (response) {
 			var purchasedItems = response.response.details;
 			var isLicensed = false;
@@ -21,7 +21,7 @@ bph.licensing = (function () {
 				}
 			} else { // not licensed via the Chrome web store
 				// check if the user has a license key
-				l.checkLicenseKey(function (licensedViaKey) { 
+				bph.licensing.checkLicenseKey(function (licensedViaKey) { 
 					if (licensedViaKey) { 
 						bph.cookies.set("isLicensed", licensedViaKey);
 						
@@ -61,7 +61,7 @@ bph.licensing = (function () {
 			'success': updateLicenseStatus,
 			'failure': function () { // license check failed, but the user may have a key or his IP is whitelisted for a license
 				// check if the user has a license key
-				l.checkLicenseKey(function (licensedViaKey) { 
+				bph.licensing.checkLicenseKey(function (licensedViaKey) { 
 					if (licensedViaKey) { 
 						bph.cookies.set("isLicensed", licensedViaKey);
 						
@@ -97,7 +97,7 @@ bph.licensing = (function () {
 		});
 	}
 
-	l.checkLicenseKey = function (callback) { 
+	licensing.checkLicenseKey = function (callback) { 
 		var isLicensed = false;
 		
 		bph.cookies.get("username", function (usernameCookieValue) { 
@@ -127,7 +127,7 @@ bph.licensing = (function () {
 		});
 	}
 	
-	return l;
+	return licensing;
 })();
 
 bph.licensing.checkForLicense();

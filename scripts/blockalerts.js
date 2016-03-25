@@ -1,10 +1,10 @@
 var bph = (bph || {}); // this file is injected into tabs, so we need to redefine bph
 
 bph.externalTools = (function () {
-	var et = {};
+	var externalTools = {};
 
-	et.confirm = window.confirm;
-	et.alert = window.alert;
+	externalTools.confirm = window.confirm;
+	externalTools.alert = window.alert;
 	
 	// overwrite the standard confirm/alert methods
 	window.confirm = function (msg) { 
@@ -17,5 +17,5 @@ bph.externalTools = (function () {
 		return false;
 	};
 	
-	return et;
+	return externalTools;
 })();

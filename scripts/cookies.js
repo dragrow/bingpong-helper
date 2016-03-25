@@ -1,7 +1,7 @@
 bph.cookies = (function () { 
-	var c = {};
+	var cookies = {};
 	
-	c.get = function (cookieName, callback) { 
+	cookies.get = function (cookieName, callback) { 
 		chrome.storage.sync.get(cookieName, function (items) {
 			var cookieValue = items[cookieName]; // value from chrome.storage
 			
@@ -13,13 +13,13 @@ bph.cookies = (function () {
 		});
 	}
 		
-	c.set = function (cookieName, cookieValue, callback) {
+	cookies.set = function (cookieName, cookieValue, callback) {
 		var json = {};
 		json[cookieName] = cookieValue;
 		chrome.storage.sync.set(json, callback);
 	}
 
-	c.deleteMicrosoftCookies = function (callback) {
+	cookies.deleteMicrosoftCookies = function (callback) {
 		// delete all *.bing.com cookies
 		chrome.cookies.getAll({domain: "bing.com"}, function (cookies) { 
 			for (var i = 0; i < cookies.length; i++) { 
@@ -66,7 +66,7 @@ bph.cookies = (function () {
 		});
 	}
 	
-	return c;
+	return cookies;
 })();
 
 // set default Bing Pong Helper options if cookies aren't set
