@@ -174,7 +174,7 @@ bph.options = (function () {
 				paymentOptions.innerHTML = "<button id=\"buyLicense\">Purchase license via Google Wallet ($9.99)</button>";
 				paymentOptions.innerHTML += "  <br><button id=\"alternatePaymentMethod\">Use alternate payment method</button>";
 				
-				document.getElementById('buyLicense').addEventListener('click', _onBuyButtonClick);
+				document.getElementById('buyLicense').addEventListener('click', bph.options.onBuyButtonClick);
 				document.getElementById('alternatePaymentMethod').addEventListener('click', function () {
 					paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:brian@bing-pong.com\">brian@bing-pong.com</a> with your preferred choice of username and payment.";
 					paymentOptions.innerHTML += " Enter in your username and key below.";
@@ -231,7 +231,7 @@ bph.options = (function () {
 								paymentOptions.innerHTML = "<button id=\"buyLicense\" disabled>Google Wallet license check failed</button>";
 								paymentOptions.innerHTML += "  <br><button id=\"alternatePaymentMethod\">Use alternate payment method</button>";
 								
-								document.getElementById('buyLicense').addEventListener('click', _onBuyButtonClick);
+								document.getElementById('buyLicense').addEventListener('click', bph.options.onBuyButtonClick);
 								document.getElementById('alternatePaymentMethod').addEventListener('click', function () {
 									paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:brian@bing-pong.com\">brian@bing-pong.com</a> with your preferred choice of username and payment.";
 									paymentOptions.innerHTML += " Enter in your username and key below.";
@@ -270,21 +270,21 @@ bph.options = (function () {
 	}
 		
 
-	function _onBuyButtonClick() { 
+	function onBuyButtonClick() { 
 		google.payments.inapp.buy({
 			'parameters': {'env': 'prod'},
 			'sku': 'bph_pro',
-			'success': onPurchase,
-			'failure': onPurchaseFail
+			'success': _onPurchase,
+			'failure': _onPurchaseFail
 		});
 	}
 
 	function _onPurchase() { 
-		checkForLicense();
+		_checkForLicense();
 	}
 
 	function _onPurchaseFail() { 
-		checkForLicense();
+		_checkForLicense();
 	}
 
 	function _disableProFeatures() {
@@ -312,7 +312,8 @@ bph.options = (function () {
 	_checkForLicense();
 	
 	return {
-		onSettingsChange: onSettingsChange
+		onSettingsChange: onSettingsChange,
+		onBuyButtonClick: onBuyButtonClick,
 	};
 })();
 
