@@ -8,7 +8,7 @@ chrome.runtime.onMessageExternal.addListener(function (message, sender, sendResp
 		
 			chrome.contentSettings.location.clear({scope: "regular"}, function () { // workaround for Chrome bug
 				chrome.contentSettings.location.set({primaryPattern: "*://*.bing.com/*", setting: "block"}, function () {
-					sendResponse({bphVersion: chrome.app.getDetails().version});
+					sendResponse({bphVersion: chrome.app.getDetails().version_name});
 				});
 			});
 		});

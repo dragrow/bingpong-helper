@@ -323,4 +323,4 @@ document.getElementById('emulateHumanSearchingBehavior').addEventListener('click
 document.getElementById('autoRunOption').addEventListener('click', bph.options.onSettingsChange);
 document.getElementById('autoRunTime').addEventListener('click', bph.options.onSettingsChange);
 
-document.getElementById('version').innerHTML = chrome.app.getDetails().version;
+document.getElementById('version').innerHTML = chrome.app.getDetails().version_name;
