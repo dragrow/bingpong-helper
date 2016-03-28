@@ -37,14 +37,14 @@ bph.humanEmulation = (function () {
 		
 		for (var i = 0; i < links.length; i++) { 
 			if (links[i].href == url) { 
-				mouseOverElement(links[i], function () { 
-					mouseDownOnElement(links[i], function () { 
+				bph.humanEmulation.mouseOverElement(links[i], function () { 
+					bph.humanEmulation.mouseDownOnElement(links[i], function () { 
 						setTimeout(function () { 
 							if (blockLoad) { 
 								links[i].href = "javascript:void(0);";
 							}
 							
-							clickOnElement(links[i]);
+							bph.humanEmulation.clickOnElement(links[i]);
 						}, delay);
 					});
 				});
