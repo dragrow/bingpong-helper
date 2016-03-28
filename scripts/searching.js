@@ -78,7 +78,7 @@ bph.searching = (function () {
 							});
 						});
 					});
-				} else if (randomNumber > 0.15 && randomNumber < 0.90) { // click on a result with 75% probability
+				} else if (randomNumber < 0.90) { // click on a result with 75% probability
 					chrome.tabs.executeScript(_searchTab.id, {file: "scripts/jquery.js", runAt: "document_start"}, function (result) { 
 						chrome.tabs.executeScript(_searchTab.id, {file: "scripts/humanemulation.js", runAt: "document_start"}, function (result) {
 							chrome.tabs.executeScript(_searchTab.id, {file: "scripts/click-on-search-result.js", runAt: "document_start"}, function (result) {
@@ -98,7 +98,7 @@ bph.searching = (function () {
 	function _executeSearchCaptchaScript(callback) { 
 		bph.searching.checkForSearchCaptcha(function (tabIsDead, captchaDetected) {
 			bph.cookies.get("emulateHumanSearchingBehavior", function (emulateHumanSearchingBehaviorCookieValue) { 
-				if (captchaDetected || tabIsDead || emulateHumanSearchingBehaviorCookieValue == "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") {
+				if (captchaDetected || tabIsDead || emulateHumanSearchingBehaviorCookieValue === "EMULATE_HUMAN_SEARCH_BEHAVIOR.DISABLED") {
 					callback({tabIsDead: tabIsDead, captchaDetected: captchaDetected});
 				} else {
 					chrome.tabs.executeScript(_searchTab.id, {code: "document.getElementsByTagName('html')[0].innerHTML;", runAt: "document_start"}, function (source) {
@@ -117,7 +117,7 @@ bph.searching = (function () {
 		}, 500);
 		
 		chrome.tabs.executeScript(_searchTab.id, {code: "document.getElementsByTagName('html')[0].innerHTML;", runAt: "document_start"}, function (source) {	
-			callback(false, (!chrome.runtime.lastError && source && JSON.stringify(source).indexOf("Pardon the interruption") != -1));
+			callback(false, (!chrome.runtime.lastError && source && JSON.stringify(source).indexOf("Pardon the interruption") !== -1));
 			clearTimeout(tabCrashTimeout);
 		});
 	}
