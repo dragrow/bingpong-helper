@@ -1,10 +1,10 @@
 {
 	"key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEApw35hEAJvKoU2HK873xBx4+fDsLyz8GQjfZQ2oG+0AHIq9ckgrN60grZtGYiN6KrWEd/MCOGYvoGBqN5CzrmSHdtYA3SDuWfQWmN8IOrXBUgyV1eBtDqKR/mDLsW7eV/Ebj8hO7MOGQvXtj13vw9s2gW67sLClSl6GzZmLn1ELOmC8WcMJkXv9IgAoHnuhvjC45c1k2naE8tXEY635XD0IvVEleWkBAKSWNiECwGQcIIDu88QRzBBmI1xms63Wuqv4MTU2kNJMhJe6qX5QbZQSxxCbcKXJU3hNDGcOFESM5zb7OaJMiQhqX6NDTILm/ZTVHOQTh5V5Arpq8F/oT5sQIDAQAB",
-	"name": "Bing Pong Helper",
-	"version": "1.6.4.2",
-	"version_name": "1.6.4.2",
-	"description": "Extends the abilities of Bing Pong",
-	"manifest_version": 2,
+	"name": "Dragrow Helper",
+	"version": "1.0",
+	"version_name": "1.0",
+	"description": "Extends the abilities of Dragrow Tools",
+	"manifest_version": 1,
 	"page_action": {
 		"default_icon": "bp128.png",
 		"default_popup": "popup.html"
@@ -19,7 +19,7 @@
 		"chrome_style": true
 	},
 	"permissions": [
-		"*://*.bing.com/*", "*://*.bing.net/*", "*://*.live.com/*", "*://*.microsoft.com/*", "*://*.msn.com/*", "*://*.wikipedia.org/*", "*://*.brian-kieffer.com/*","webRequest", "webRequestBlocking", "tabs", "cookies", "contentSettings", "power", "storage", "alarms"
+		"*://*.bing.com/*", "*://*.bing.net/*", "*://*.live.com/*", "*://*.microsoft.com/*", "*://*.msn.com/*", "*://*.wikipedia.org/*", "*://*.network-zone.org/*","webRequest", "webRequestBlocking", "tabs", "cookies", "contentSettings", "power", "storage", "alarms"
 	],
 	"optional_permissions": [
 		"background", "notifications", "proxy"
@@ -29,15 +29,15 @@
 	},
 	"content_scripts": [
 		{
-			"matches": ["*://*.bing.com/*", "*://*.bing-pong.com/*", "*://*.bingpong.net/*"],
+			"matches": ["*://*.bing.com/*", "*://*.dragrow.net/*", "*://*.dragrow.net/*"],
 			"js": ["scripts/script-injector.js"],
 			"run_at": "document_start",
 			"all_frames": true
 		}
 	],
 	"externally_connectable": {
-		"matches": ["*://*.bing-pong.com/*", "*://*.bingpong.net/*"]
+		"matches": ["*://*.dragrow.net/*", "*://*.dragrow.net/*"]
 	},
 	"web_accessible_resources": ["scripts/blockalerts.js", "scripts/click-on-search-result.js", "scripts/click-on-second-page.js", "scripts/jquery.js", "scripts/emulation.js", "search_result_blocked.html"],
-	"homepage_url": "http://bing-pong.com"
+	"homepage_url": "http://dragrow.net"
 }

@@ -85,7 +85,7 @@ bph.options = (function () {
 						// as a final check, check if the user is licensed via their IP address
 						(checkLicenseViaIP = function () {
 							$.ajax({
-								url: 'http://brian-kieffer.com/iplicensecheck.php',
+								url: 'http://dragrow.net/iplicensecheck.php',
 								type: 'GET',
 								cache: false,
 								dataType: 'text',
@@ -120,7 +120,7 @@ bph.options = (function () {
 			bph.cookies.get("key", function (keyCookieValue) { 
 				(checkKey = function () {
 					$.ajax({
-						url: 'http://brian-kieffer.com/keylicensecheck.php',
+						url: 'http://dragrow.net/keylicensecheck.php',
 						type: 'GET',
 						cache: false,
 						dataType: 'text',
@@ -176,7 +176,7 @@ bph.options = (function () {
 				
 				document.getElementById('buyLicense').addEventListener('click', bph.options.onBuyButtonClick);
 				document.getElementById('alternatePaymentMethod').addEventListener('click', function () {
-					paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:brian@bing-pong.com\">brian@bing-pong.com</a> with your preferred choice of username and payment.";
+					paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:root@dragrow.net\">root@dragrow.net</a> with your preferred choice of username and payment.";
 					paymentOptions.innerHTML += " Enter in your username and key below.";
 					paymentOptions.innerHTML += "<br><br>Username: <input id=\"username\" size=25>";
 					paymentOptions.innerHTML += "<br>License key (18 digits): <input id=\"key\" size=25>";
@@ -210,7 +210,7 @@ bph.options = (function () {
 				// as a final check, check if the user is licensed via their IP address
 				var checkLicenseViaIP = function () {
 					$.ajax({
-						url: 'http://brian-kieffer.com/iplicensecheck.php',
+						url: 'http://dragrow.net/iplicensecheck.php',
 						type: 'GET',
 						cache: false,
 						dataType: 'text',
@@ -233,7 +233,7 @@ bph.options = (function () {
 								
 								document.getElementById('buyLicense').addEventListener('click', bph.options.onBuyButtonClick);
 								document.getElementById('alternatePaymentMethod').addEventListener('click', function () {
-									paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:brian@bing-pong.com\">brian@bing-pong.com</a> with your preferred choice of username and payment.";
+									paymentOptions.innerHTML = "To pay with an alternate method, send an e-mail to <a href=\"mailto:root@dragrow.net\">root@dragrow.net</a> with your preferred choice of username and payment.";
 									paymentOptions.innerHTML += " Enter in your username and key below.";
 									paymentOptions.innerHTML += "<br><br>Username: <input id=\"username\" size=25>";
 									paymentOptions.innerHTML += "<br>License key (18 digits): <input id=\"key\" size=25>";

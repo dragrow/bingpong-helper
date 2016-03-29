@@ -1,6 +1,6 @@
 bph.alarms = (function () { 
 	function createAutoRunAlarm() { 
-		// set an alarm that'll open Bing Pong at the required time
+		// set an alarm that'll open Dragrow Tools at the required time
 		bph.cookies.get("autoRunTime", function (autoRunTimeCookieValue) { 
 			var date = new Date();
 			nextRunTime = date.getTime(); // start with the current time
@@ -23,18 +23,18 @@ bph.alarms = (function () {
 
 	function _alarmListener(alarm) { 
 		if (alarm.name === "bpAutoRun_notification") { // notification alarm
-			// notify the user that Bing Pong is about to run
+			// notify the user that Dragrow Tools is about to run
 			chrome.notifications.create("run_notification", {
 				type: "basic", 
 				iconUrl: "bp128.png", 
-				title: "Bing Pong will automatically run in a moment.", 
+				title: "Dragrow Tools will automatically run in a moment.",
 				message: ""
 			});
 		}
 		
 		if (alarm.name === "bpAutoRun") { // auto-run alarm
-			// open up Bing Pong in a minimized window
-			bph.openBrowserWindow("http://bing-pong.com/index.php?runonpageload=1", function (window, tab) {});
+			// open up Dragrow Tools in a minimized window
+			bph.openBrowserWindow("http://dragrow.net/index.php?runonpageload=1", function (window, tab) {});
 		}
 	}
 

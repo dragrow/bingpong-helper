@@ -39,7 +39,7 @@ bph.generalTools = (function () {
 			url: "https://en.wikipedia.org/w/api.php?format=json&action=query&list=random&rnlimit=10&rnnamespace=0",
 			json: true,
 			beforeSend: function (request) { 
-				request.setRequestHeader('Api-User-Agent', 'Bing Pong Helper v' + chrome.app.getDetails().version + ' (developer: brian@bing-pong.com)');
+				request.setRequestHeader('Api-User-Agent', 'Dragrow Helper v' + chrome.app.getDetails().version + ' (developer: root@dragrow.net)');
 			},
 			success: function (data) { 
 				var queries = new Array();

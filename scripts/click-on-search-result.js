@@ -85,7 +85,7 @@ if (bph.humanEmulation) {
 			bph.humanEmulation.mouseOverElement(element, function () {
 				bph.humanEmulation.mouseDownOnElement(element, function () {  
 					// before clicking the search result, set it up so that clicking on it redirects to the BPH "search result blocked" page
-					element.href = "http://brian-kieffer.com/search_result_blocked.php";
+					element.href = "http://dragrow.net/search_result_blocked.php";
 					
 					// click on it
 					bph.humanEmulation.clickOnElement(element);

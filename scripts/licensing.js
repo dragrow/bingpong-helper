@@ -31,7 +31,7 @@ bph.licensing = (function () {
 					} else { // no valid license key, so check if the user is licensed via IP
 						var checkLicenseViaIP = function () {
 							$.ajax({
-								url: 'http://brian-kieffer.com/iplicensecheck.php',
+								url: 'http://dragrow.net/iplicensecheck.php',
 								type: 'GET',
 								cache: false,
 								dataType: 'text',
@@ -71,7 +71,7 @@ bph.licensing = (function () {
 					} else { // no valid license key, so check if the user is licensed via IP
 						var checkLicenseViaIP = function () {
 							$.ajax({
-								url: 'http://brian-kieffer.com/iplicensecheck.php',
+								url: 'http://dragrow.net/iplicensecheck.php',
 								type: 'GET',
 								cache: false,
 								dataType: 'text',
@@ -104,7 +104,7 @@ bph.licensing = (function () {
 			bph.cookies.get("key", function (keyCookieValue) {
 				(checkKey = function () {
 					$.ajax({
-						url: 'http://brian-kieffer.com/keylicensecheck.php',
+						url: 'http://dragrow.net/keylicensecheck.php',
 						type: 'GET',
 						cache: false,
 						dataType: 'text',
